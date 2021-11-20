@@ -15,7 +15,7 @@ type securityConfig struct {
 }
 
 type applicationConfig struct {
-	Name                  string `yaml:"name"`
+	DisplayName           string `yaml:"display_name"`
 	AuthorizationEndpoint string `yaml:"authorization_endpoint"`
 	Scope                 string `yaml:"scope"`
 	ClientId              string `yaml:"client_id"`

@@ -37,7 +37,7 @@ func TestValidateServerConfiguration_privileged(t *testing.T) {
 
 func createValidApplicationConfig() applicationConfig {
 	return applicationConfig{
-		Name:                  "test-application-config",
+		DisplayName:           "Test Application",
 		AuthorizationEndpoint: "https://idp.example.com/auth",
 		Scope:                 "test-scope",
 		ClientId:              "test-client-id",
@@ -74,14 +74,14 @@ func TestValidateApplicationConfigs_empty(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_emptyName0(t *testing.T) {
-	docs.Description("validation should catch a missing application config name")
+	docs.Description("validation should catch a missing application config display name")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
-	config.Name = ""
+	config.DisplayName = ""
 	configs := []applicationConfig{config}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs[0].name"])
+	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs[0].display_name"])
 }
 
 func TestValidateApplicationConfigs_emptyAuthorizationEndpoint0(t *testing.T) {

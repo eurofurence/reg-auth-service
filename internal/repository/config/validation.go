@@ -29,29 +29,27 @@ func validateApplicationConfigurations(errs validationErrors, acs []applicationC
 	if len(acs) == 0 {
 		addError(errs, "application_configs", acs, "must contain at least one entry")
 	}
-	for i, ac := range acs {
-		if ac.Name == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].name", i), ac.Name, "cannot not be empty")
-		} else {
-			//TODO: check uniqueness of application config names
+	for name, ac := range acs {
+		if ac.DisplayName == "" {
+			addError(errs, fmt.Sprintf("application_configs[%d].display_name", name), ac.DisplayName, "cannot not be empty")
 		}
 		if ac.AuthorizationEndpoint == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].authorization_endpoint", i), ac.AuthorizationEndpoint, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs[%d].authorization_endpoint", name), ac.AuthorizationEndpoint, "cannot not be empty")
 		}
 		if ac.Scope == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].scope", i), ac.Scope, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs[%d].scope", name), ac.Scope, "cannot not be empty")
 		}
 		if ac.ClientId == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].client_id", i), ac.ClientId, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs[%d].client_id", name), ac.ClientId, "cannot not be empty")
 		}
 		if ac.ClientSecret == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].client_secret", i), ac.ClientSecret, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs[%d].client_secret", name), ac.ClientSecret, "cannot not be empty")
 		}
 		if ac.RedirectUrl == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].redirect_url", i), ac.RedirectUrl, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs[%d].redirect_url", name), ac.RedirectUrl, "cannot not be empty")
 		}
 		if ac.CodeChallengeMethod != "S256" && ac.CodeChallengeMethod != "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].code_challenge_method", i), ac.CodeChallengeMethod, "must be empty or S256")
+			addError(errs, fmt.Sprintf("application_configs[%d].code_challenge_method", name), ac.CodeChallengeMethod, "must be empty or S256")
 		}
 	}
 }
