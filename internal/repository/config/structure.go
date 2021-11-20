@@ -20,7 +20,7 @@ type applicationConfig struct {
 	Scope                 string `yaml:"scope"`
 	ClientId              string `yaml:"client_id"`
 	ClientSecret          string `yaml:"client_secret"`
-	RedirectUrl           string `yaml:"redirect_url"`
+	DefaultRedirectUrl    string `yaml:"default_redirect_url"`
 	CodeChallengeMethod   string `yaml:"code_challenge_method"`
 }
 

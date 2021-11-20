@@ -42,7 +42,7 @@ func createValidApplicationConfig() applicationConfig {
 		Scope:                 "test-scope",
 		ClientId:              "test-client-id",
 		ClientSecret:          "test-client-secret",
-		RedirectUrl:           "https://target.example.com/app",
+		DefaultRedirectUrl:    "https://target.example.com/app",
 		CodeChallengeMethod:   "S256",
 	}
 }
@@ -127,15 +127,15 @@ func TestValidateApplicationConfigs_emptyClientSecret(t *testing.T) {
 	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.client_secret"])
 }
 
-func TestValidateApplicationConfigs_emptyRedirectUrl(t *testing.T) {
-	docs.Description("validation should catch a missing redirect URL in application config")
+func TestValidateApplicationConfigs_emptyDefaultRedirectUrl(t *testing.T) {
+	docs.Description("validation should catch a missing default redirect URL in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
-	config.RedirectUrl = ""
+	config.DefaultRedirectUrl = ""
 	configs := map[string]applicationConfig{"test-application-config": config}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.redirect_url"])
+	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.default_redirect_url"])
 }
 
 func TestValidateApplicationConfigs_emptyCodeChallengeMethod(t *testing.T) {

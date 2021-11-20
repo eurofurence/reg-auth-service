@@ -45,8 +45,8 @@ func validateApplicationConfigurations(errs validationErrors, acs map[string]app
 		if ac.ClientSecret == "" {
 			addError(errs, fmt.Sprintf("application_configs.%s.client_secret", name), ac.ClientSecret, "cannot not be empty")
 		}
-		if ac.RedirectUrl == "" {
-			addError(errs, fmt.Sprintf("application_configs.%s.redirect_url", name), ac.RedirectUrl, "cannot not be empty")
+		if ac.DefaultRedirectUrl == "" {
+			addError(errs, fmt.Sprintf("application_configs.%s.default_redirect_url", name), ac.DefaultRedirectUrl, "cannot not be empty")
 		}
 		if ac.CodeChallengeMethod != "S256" && ac.CodeChallengeMethod != "" {
 			addError(errs, fmt.Sprintf("application_configs.%s.code_challenge_method", name), ac.CodeChallengeMethod, "must be empty or S256")
