@@ -1,0 +1,26 @@
+openapi: 3.1.0
+info:
+  title: reg-backend-template-test API
+  version: 0.1.0
+  contact:
+    email: "jsquirrel_github_9a6d@packetloss.de"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+paths:
+  /health:
+    get:
+      summary: Check service health
+      description: Service health not including transitive dependencies.
+      responses:
+        '200':
+          description: Service status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [up, down]
+                    example: up

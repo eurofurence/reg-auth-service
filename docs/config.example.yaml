@@ -1,0 +1,12 @@
+server:
+  port: 8081
+security:
+  disable_cors: false
+application_configs:
+  - name: room-service
+    authorization_endpoint: https://auth.eurofurence.example.com/auth
+    scope: room
+    client_id: IAmNotSoSecret.
+    client_secret: IAmVerySecret!
+    redirect_url:  https://reg.eurofurence.example.com/room/
+    code_challenge_method: S256

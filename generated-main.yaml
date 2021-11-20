@@ -1,0 +1,9 @@
+generator: main
+parameters:
+  licenseOwner: Eurofurence e.V.
+  licenseYear: "2021"
+  maintainerEmail: jsquirrel_github_9a6d@packetloss.de
+  repoBaseUrl: github.com/eurofurence
+  reviewers:
+  - Jumpy-Squirrel
+  serviceName: reg-auth-service
