@@ -138,6 +138,37 @@ func TestValidateApplicationConfigs_emptyDefaultRedirectUrl(t *testing.T) {
 	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.default_redirect_url"])
 }
 
+func TestValidateApplicationConfigs_emptyRedirectUrlPattern(t *testing.T) {
+	docs.Description("validation should accept empty redirect URL pattern in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.RedirectUrlPattern = ""
+	configs := map[string]applicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 0, len(errs))
+}
+
+func TestValidateApplicationConfigs_validRedirectUrlPattern(t *testing.T) {
+	docs.Description("validation should accept valid redirect URL pattern in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.RedirectUrlPattern = "https://reg.eurofurence.example.com/room/(\\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?"
+	configs := map[string]applicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 0, len(errs))
+}
+
+func TestValidateApplicationConfigs_invalidRedirectUrlPattern(t *testing.T) {
+	docs.Description("validation should catch an invalid redirect URL pattern in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.RedirectUrlPattern = "(iammissingaroundbracketattheendohno"
+	configs := map[string]applicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '(iammissingaroundbracketattheendohno' must be a valid regular expression, but encountered compile error: error parsing regexp: missing closing ): `(iammissingaroundbracketattheendohno`)"}, errs["application_configs.test-application-config.redirect_url_pattern"])
+}
+
 func TestValidateApplicationConfigs_emptyCodeChallengeMethod(t *testing.T) {
 	docs.Description("validation should accept an empty code challenge method in application config")
 	errs := validationErrors{}

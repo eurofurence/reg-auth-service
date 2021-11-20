@@ -10,4 +10,5 @@ application_configs:
     client_id: IAmNotSoSecret.
     client_secret: IAmVerySecret!
     default_redirect_url: https://reg.eurofurence.example.com/room/
+    redirect_url_pattern: https://reg.eurofurence.example.com/room/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
     code_challenge_method: S256

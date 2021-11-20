@@ -21,6 +21,7 @@ type applicationConfig struct {
 	ClientId              string `yaml:"client_id"`
 	ClientSecret          string `yaml:"client_secret"`
 	DefaultRedirectUrl    string `yaml:"default_redirect_url"`
+	RedirectUrlPattern    string `yaml:"redirect_url_pattern"`
 	CodeChallengeMethod   string `yaml:"code_challenge_method"`
 }
 
