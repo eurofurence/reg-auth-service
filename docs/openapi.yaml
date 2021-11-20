@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: reg-backend-template-test API
+  title: reg-auth-service API
   version: 0.1.0
   contact:
     email: "jsquirrel_github_9a6d@packetloss.de"

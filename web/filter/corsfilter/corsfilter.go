@@ -1,10 +1,11 @@
 package corsfilter
 
 import (
-	"github.com/eurofurence/reg-backend-template-test/internal/repository/config"
-	"github.com/eurofurence/reg-backend-template-test/internal/repository/logging"
-	"github.com/go-http-utils/headers"
 	"net/http"
+
+	"github.com/eurofurence/reg-auth-service/internal/repository/config"
+	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
+	"github.com/go-http-utils/headers"
 )
 
 func createCorsHeadersHandler(next http.Handler) func(w http.ResponseWriter, r *http.Request) {

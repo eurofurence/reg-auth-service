@@ -3,7 +3,7 @@ package config
 import (
 	"testing"
 
-	"github.com/eurofurence/reg-backend-template-test/docs"
+	"github.com/eurofurence/reg-auth-service/docs"
 	"github.com/stretchr/testify/require"
 )
 

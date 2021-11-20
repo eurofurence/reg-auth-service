@@ -1,9 +1,10 @@
 package consolelogging
 
 import (
-	"github.com/eurofurence/reg-backend-template-test/internal/repository/logging/consolelogging/logformat"
 	"log"
 	"os"
+
+	"github.com/eurofurence/reg-auth-service/internal/repository/logging/consolelogging/logformat"
 )
 
 const severityDEBUG = "DEBUG"

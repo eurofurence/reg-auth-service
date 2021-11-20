@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/eurofurence/reg-backend-template-test/docs"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/eurofurence/reg-auth-service/docs"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadConfiguration_noFilename(t *testing.T) {

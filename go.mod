@@ -1,4 +1,4 @@
-module github.com/eurofurence/reg-backend-template-test
+module github.com/eurofurence/reg-auth-service
 
 go 1.16
 

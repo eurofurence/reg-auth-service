@@ -7,7 +7,7 @@ import (
 	"log"
 	"sort"
 
-	"github.com/eurofurence/reg-backend-template-test/internal/repository/logging/consolelogging/logformat"
+	"github.com/eurofurence/reg-auth-service/internal/repository/logging/consolelogging/logformat"
 	"gopkg.in/yaml.v2"
 )
 

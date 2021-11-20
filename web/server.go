@@ -1,14 +1,15 @@
 package web
 
 import (
-	"github.com/eurofurence/reg-backend-template-test/internal/repository/config"
-	"github.com/eurofurence/reg-backend-template-test/internal/repository/logging"
-	"github.com/eurofurence/reg-backend-template-test/web/controller/healthctl"
-	"github.com/eurofurence/reg-backend-template-test/web/filter/corsfilter"
-	"github.com/eurofurence/reg-backend-template-test/web/filter/logreqid"
-	"github.com/eurofurence/reg-backend-template-test/web/filter/reqid"
-	"github.com/go-chi/chi"
 	"net/http"
+
+	"github.com/eurofurence/reg-auth-service/internal/repository/config"
+	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
+	"github.com/eurofurence/reg-auth-service/web/controller/healthctl"
+	"github.com/eurofurence/reg-auth-service/web/filter/corsfilter"
+	"github.com/eurofurence/reg-auth-service/web/filter/logreqid"
+	"github.com/eurofurence/reg-auth-service/web/filter/reqid"
+	"github.com/go-chi/chi"
 )
 
 func Create() chi.Router {

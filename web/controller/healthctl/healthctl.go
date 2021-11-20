@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/eurofurence/reg-backend-template-test/api/v1/health"
-	"github.com/eurofurence/reg-backend-template-test/internal/repository/logging"
-	"github.com/eurofurence/reg-backend-template-test/web/util/media"
+	"net/http"
+
+	"github.com/eurofurence/reg-auth-service/api/v1/health"
+	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
+	"github.com/eurofurence/reg-auth-service/web/util/media"
 	"github.com/go-chi/chi"
 	"github.com/go-http-utils/headers"
-	"net/http"
 )
 
 func Create(server chi.Router) {

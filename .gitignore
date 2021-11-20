@@ -1,6 +1,6 @@
 .idea/**
 *.exe
 main
-reg-backend-template-test
+reg-auth-service
 **/*.swp
 config.yaml
