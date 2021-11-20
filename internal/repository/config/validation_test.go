@@ -48,7 +48,7 @@ func createValidApplicationConfig() applicationConfig {
 }
 
 func TestValidateApplicationConfigs_validSingle(t *testing.T) {
-	docs.Description("validation should accept one valid applicaton config")
+	docs.Description("validation should accept one valid application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	configs := []applicationConfig{config}
@@ -57,7 +57,7 @@ func TestValidateApplicationConfigs_validSingle(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_validMultiple(t *testing.T) {
-	docs.Description("validation should accept multiple valid applicaton config")
+	docs.Description("validation should accept multiple valid application configs")
 	errs := validationErrors{}
 	configs := []applicationConfig{createValidApplicationConfig(), createValidApplicationConfig()}
 	validateApplicationConfigurations(errs, configs)
@@ -65,7 +65,7 @@ func TestValidateApplicationConfigs_validMultiple(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_empty(t *testing.T) {
-	docs.Description("validation should accept valid applicaton config")
+	docs.Description("validation should require at least one application config")
 	errs := validationErrors{}
 	configs := []applicationConfig{}
 	validateApplicationConfigurations(errs, configs)
@@ -73,7 +73,8 @@ func TestValidateApplicationConfigs_empty(t *testing.T) {
 	require.Equal(t, []string{"value '[]' must contain at least one entry"}, errs["application_configs"])
 }
 
-func TestValidateApplicationConfigs_0emptyName(t *testing.T) {
+func TestValidateApplicationConfigs_emptyName0(t *testing.T) {
+	docs.Description("validation should catch a missing application config name")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.Name = ""
@@ -84,6 +85,7 @@ func TestValidateApplicationConfigs_0emptyName(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_emptyAuthorizationEndpoint0(t *testing.T) {
+	docs.Description("validation should catch a missing authorization endpoint in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.AuthorizationEndpoint = ""
@@ -94,6 +96,7 @@ func TestValidateApplicationConfigs_emptyAuthorizationEndpoint0(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_emptyScope0(t *testing.T) {
+	docs.Description("validation should catch a missing scope in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.Scope = ""
@@ -104,6 +107,7 @@ func TestValidateApplicationConfigs_emptyScope0(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_emptyClientId0(t *testing.T) {
+	docs.Description("validation should catch a missing client ID in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.ClientId = ""
@@ -114,6 +118,7 @@ func TestValidateApplicationConfigs_emptyClientId0(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_emptyClientSecret0(t *testing.T) {
+	docs.Description("validation should catch a missing client secret in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.ClientSecret = ""
@@ -124,6 +129,7 @@ func TestValidateApplicationConfigs_emptyClientSecret0(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_emptyRedirectUrl0(t *testing.T) {
+	docs.Description("validation should catch a missing redirect URL in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.RedirectUrl = ""
@@ -134,6 +140,7 @@ func TestValidateApplicationConfigs_emptyRedirectUrl0(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_emptyCodeChallengeMethod0(t *testing.T) {
+	docs.Description("validation should accept an empty code challenge method in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.CodeChallengeMethod = ""
@@ -143,6 +150,7 @@ func TestValidateApplicationConfigs_emptyCodeChallengeMethod0(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_invalidCodeChallengeMethod0(t *testing.T) {
+	docs.Description("validation should catch an invalid code challenge method in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.CodeChallengeMethod = "INV"
@@ -153,6 +161,7 @@ func TestValidateApplicationConfigs_invalidCodeChallengeMethod0(t *testing.T) {
 }
 
 func TestValidateApplicationConfigs_invalidCodeChallengeMethod1(t *testing.T) {
+	docs.Description("validation should catch an invalid code challenge method in other application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
 	config.CodeChallengeMethod = "INV"
