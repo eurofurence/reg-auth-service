@@ -3,17 +3,17 @@ server:
 security:
   disable_cors: false
 identity_provider:
-  authorization_endpoint: https://auth.eurofurence.example.com/auth
-  token_endpoint: https://auth.eurofurence.example.com/token
-  end_session_endpoint: https://auth.eurofurence.example.com/logout
+  authorization_endpoint: https://auth.example.com/auth
+  token_endpoint: https://auth.example.com/token
+  end_session_endpoint: https://auth.example.com/logout
   circuit_breaker_timeout_ms: 30000
   auth_request_timeout_s: 600
 application_configs:
-  room-service:
-    display_name: Room Service
-    scope: room
+  example-service:
+    display_name: Example Service
+    scope: example
     client_id: IAmNotSoSecret.
     client_secret: IAmVerySecret!
-    default_redirect_url: https://reg.eurofurence.example.com/room/
-    redirect_url_pattern: https://reg.eurofurence.example.com/room/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
+    default_redirect_url: https://example.com/app/
+    redirect_url_pattern: https://example.com/app/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
     code_challenge_method: S256
