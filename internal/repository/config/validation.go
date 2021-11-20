@@ -25,31 +25,31 @@ func validateServerConfiguration(errs validationErrors, sc serverConfig) {
 func validateSecurityConfiguration(errs validationErrors, sc securityConfig) {
 }
 
-func validateApplicationConfigurations(errs validationErrors, acs []applicationConfig) {
+func validateApplicationConfigurations(errs validationErrors, acs map[string]applicationConfig) {
 	if len(acs) == 0 {
 		addError(errs, "application_configs", acs, "must contain at least one entry")
 	}
 	for name, ac := range acs {
 		if ac.DisplayName == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].display_name", name), ac.DisplayName, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.display_name", name), ac.DisplayName, "cannot not be empty")
 		}
 		if ac.AuthorizationEndpoint == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].authorization_endpoint", name), ac.AuthorizationEndpoint, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.authorization_endpoint", name), ac.AuthorizationEndpoint, "cannot not be empty")
 		}
 		if ac.Scope == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].scope", name), ac.Scope, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.scope", name), ac.Scope, "cannot not be empty")
 		}
 		if ac.ClientId == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].client_id", name), ac.ClientId, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.client_id", name), ac.ClientId, "cannot not be empty")
 		}
 		if ac.ClientSecret == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].client_secret", name), ac.ClientSecret, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.client_secret", name), ac.ClientSecret, "cannot not be empty")
 		}
 		if ac.RedirectUrl == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].redirect_url", name), ac.RedirectUrl, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.redirect_url", name), ac.RedirectUrl, "cannot not be empty")
 		}
 		if ac.CodeChallengeMethod != "S256" && ac.CodeChallengeMethod != "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].code_challenge_method", name), ac.CodeChallengeMethod, "must be empty or S256")
+			addError(errs, fmt.Sprintf("application_configs.%s.code_challenge_method", name), ac.CodeChallengeMethod, "must be empty or S256")
 		}
 	}
 }

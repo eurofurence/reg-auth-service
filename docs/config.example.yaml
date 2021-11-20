@@ -3,7 +3,8 @@ server:
 security:
   disable_cors: false
 application_configs:
-  - display_name: Room Service
+  room-service:
+    display_name: Room Service
     authorization_endpoint: https://auth.eurofurence.example.com/auth
     scope: room
     client_id: IAmNotSoSecret.

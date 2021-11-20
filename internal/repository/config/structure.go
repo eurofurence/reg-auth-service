@@ -1,9 +1,9 @@
 package config
 
 type conf struct {
-	Server             serverConfig        `yaml:"server"`
-	Security           securityConfig      `yaml:"security"`
-	ApplicationConfigs []applicationConfig `yaml:"application_configs"`
+	Server             serverConfig                 `yaml:"server"`
+	Security           securityConfig               `yaml:"security"`
+	ApplicationConfigs map[string]applicationConfig `yaml:"application_configs"`
 }
 
 type serverConfig struct {
