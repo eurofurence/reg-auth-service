@@ -35,15 +35,92 @@ func TestValidateServerConfiguration_privileged(t *testing.T) {
 	tstValidatePort(t, "1023", "value '1023' must be a nonprivileged port")
 }
 
+func createValidIdentityProviderConfiguration() identityProviderConfig {
+	return identityProviderConfig{
+		AuthorizationEndpoint: "https://example.com/auth",
+		TokenEndpoint:         "https://example.com/token",
+		EndSessionEndpoint:    "https://example.com/logout",
+		CircuitBreakerTimeout: 21,
+		AuthRequestTimeout:    42,
+	}
+}
+
+func TestValidateIdentityProviderConfiguration_emptyAuthorizationEndpoint(t *testing.T) {
+	docs.Description("validation should catch a missing authorization endpoint in identity provider config")
+	errs := validationErrors{}
+	config := createValidIdentityProviderConfiguration()
+	config.AuthorizationEndpoint = ""
+	validateIdentityProviderConfiguration(errs, config)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '' cannot not be empty"}, errs["identity_provider.authorization_endpoint"])
+}
+
+func TestValidateIdentityProviderConfiguration_emptyTokenEndpoint(t *testing.T) {
+	docs.Description("validation should catch a missing token endpoint in identity provider config")
+	errs := validationErrors{}
+	config := createValidIdentityProviderConfiguration()
+	config.TokenEndpoint = ""
+	validateIdentityProviderConfiguration(errs, config)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '' cannot not be empty"}, errs["identity_provider.token_endpoint"])
+}
+
+func TestValidateIdentityProviderConfiguration_emptyEndSessionEndpoint(t *testing.T) {
+	docs.Description("validation should catch a missing authorization endpoint in identity provider config")
+	errs := validationErrors{}
+	config := createValidIdentityProviderConfiguration()
+	config.EndSessionEndpoint = ""
+	validateIdentityProviderConfiguration(errs, config)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '' cannot not be empty"}, errs["identity_provider.end_session_endpoint"])
+}
+
+func TestValidateIdentityProviderConfiguration_zeroCircuitBreakerTimeout(t *testing.T) {
+	docs.Description("validation should catch a zero circuit breaker timeout in identity provider config")
+	errs := validationErrors{}
+	config := createValidIdentityProviderConfiguration()
+	config.CircuitBreakerTimeout = 0
+	validateIdentityProviderConfiguration(errs, config)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '0' must be greater than 0"}, errs["identity_provider.circuit_breaker_timeout_ms"])
+}
+func TestValidateIdentityProviderConfiguration_negativeCircuitBreakerTimeout(t *testing.T) {
+	docs.Description("validation should catch a negative circuit breaker timeout in identity provider config")
+	errs := validationErrors{}
+	config := createValidIdentityProviderConfiguration()
+	config.CircuitBreakerTimeout = -21
+	validateIdentityProviderConfiguration(errs, config)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '-21' must be greater than 0"}, errs["identity_provider.circuit_breaker_timeout_ms"])
+}
+
+func TestValidateIdentityProviderConfiguration_zeroAuthRequestTimeout(t *testing.T) {
+	docs.Description("validation should catch a zero auth request timeout in identity provider config")
+	errs := validationErrors{}
+	config := createValidIdentityProviderConfiguration()
+	config.AuthRequestTimeout = 0
+	validateIdentityProviderConfiguration(errs, config)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '0' must be greater than 0"}, errs["identity_provider.auth_request_timeout_s"])
+}
+func TestValidateIdentityProviderConfiguration_negativeAuthRequestTimeout(t *testing.T) {
+	docs.Description("validation should catch a negative auth request timeout in identity provider config")
+	errs := validationErrors{}
+	config := createValidIdentityProviderConfiguration()
+	config.AuthRequestTimeout = -21
+	validateIdentityProviderConfiguration(errs, config)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '-21' must be greater than 0"}, errs["identity_provider.auth_request_timeout_s"])
+}
+
 func createValidApplicationConfig() applicationConfig {
 	return applicationConfig{
-		DisplayName:           "Test Application",
-		AuthorizationEndpoint: "https://idp.example.com/auth",
-		Scope:                 "test-scope",
-		ClientId:              "test-client-id",
-		ClientSecret:          "test-client-secret",
-		DefaultRedirectUrl:    "https://target.example.com/app",
-		CodeChallengeMethod:   "S256",
+		DisplayName:         "Test Application",
+		Scope:               "test-scope",
+		ClientId:            "test-client-id",
+		ClientSecret:        "test-client-secret",
+		DefaultRedirectUrl:  "https://target.example.com/app",
+		CodeChallengeMethod: "S256",
 	}
 }
 
@@ -81,17 +158,6 @@ func TestValidateApplicationConfigs_emptyDisplayName(t *testing.T) {
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 1, len(errs))
 	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.display_name"])
-}
-
-func TestValidateApplicationConfigs_emptyAuthorizationEndpoint(t *testing.T) {
-	docs.Description("validation should catch a missing authorization endpoint in application config")
-	errs := validationErrors{}
-	config := createValidApplicationConfig()
-	config.AuthorizationEndpoint = ""
-	configs := map[string]applicationConfig{"test-application-config": config}
-	validateApplicationConfigurations(errs, configs)
-	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.authorization_endpoint"])
 }
 
 func TestValidateApplicationConfigs_emptyScope(t *testing.T) {

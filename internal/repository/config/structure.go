@@ -3,6 +3,7 @@ package config
 type conf struct {
 	Server             serverConfig                 `yaml:"server"`
 	Security           securityConfig               `yaml:"security"`
+	IdentityProvider   identityProviderConfig       `yaml:"identity_provider"`
 	ApplicationConfigs map[string]applicationConfig `yaml:"application_configs"`
 }
 
@@ -14,15 +15,22 @@ type securityConfig struct {
 	DisableCors bool `yaml:"disable_cors"`
 }
 
-type applicationConfig struct {
-	DisplayName           string `yaml:"display_name"`
+type identityProviderConfig struct {
 	AuthorizationEndpoint string `yaml:"authorization_endpoint"`
-	Scope                 string `yaml:"scope"`
-	ClientId              string `yaml:"client_id"`
-	ClientSecret          string `yaml:"client_secret"`
-	DefaultRedirectUrl    string `yaml:"default_redirect_url"`
-	RedirectUrlPattern    string `yaml:"redirect_url_pattern"`
-	CodeChallengeMethod   string `yaml:"code_challenge_method"`
+	TokenEndpoint         string `yaml:"token_endpoint"`
+	EndSessionEndpoint    string `yaml:"end_session_endpoint"`
+	CircuitBreakerTimeout int    `yaml:"circuit_breaker_timeout_ms"`
+	AuthRequestTimeout    int    `yaml:"auth_request_timeout_s"`
+}
+
+type applicationConfig struct {
+	DisplayName         string `yaml:"display_name"`
+	Scope               string `yaml:"scope"`
+	ClientId            string `yaml:"client_id"`
+	ClientSecret        string `yaml:"client_secret"`
+	DefaultRedirectUrl  string `yaml:"default_redirect_url"`
+	RedirectUrlPattern  string `yaml:"redirect_url_pattern"`
+	CodeChallengeMethod string `yaml:"code_challenge_method"`
 }
 
 type validationErrors map[string][]string

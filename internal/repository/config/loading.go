@@ -56,6 +56,7 @@ func validateConfiguration(newConfigurationData *conf) error {
 
 	validateServerConfiguration(errs, newConfigurationData.Server)
 	validateSecurityConfiguration(errs, newConfigurationData.Security)
+	validateIdentityProviderConfiguration(errs, newConfigurationData.IdentityProvider)
 	validateApplicationConfigurations(errs, newConfigurationData.ApplicationConfigs)
 	// add further validations here
 

@@ -27,6 +27,24 @@ func validateServerConfiguration(errs validationErrors, sc serverConfig) {
 func validateSecurityConfiguration(errs validationErrors, sc securityConfig) {
 }
 
+func validateIdentityProviderConfiguration(errs validationErrors, ipc identityProviderConfig) {
+	if ipc.AuthorizationEndpoint == "" {
+		addError(errs, "identity_provider.authorization_endpoint", ipc.AuthorizationEndpoint, "cannot not be empty")
+	}
+	if ipc.TokenEndpoint == "" {
+		addError(errs, "identity_provider.token_endpoint", ipc.TokenEndpoint, "cannot not be empty")
+	}
+	if ipc.EndSessionEndpoint == "" {
+		addError(errs, "identity_provider.end_session_endpoint", ipc.EndSessionEndpoint, "cannot not be empty")
+	}
+	if ipc.CircuitBreakerTimeout <= 0 {
+		addError(errs, "identity_provider.circuit_breaker_timeout_ms", ipc.CircuitBreakerTimeout, "must be greater than 0")
+	}
+	if ipc.AuthRequestTimeout <= 0 {
+		addError(errs, "identity_provider.auth_request_timeout_s", ipc.AuthRequestTimeout, "must be greater than 0")
+	}
+}
+
 func validateApplicationConfigurations(errs validationErrors, acs map[string]applicationConfig) {
 	if len(acs) == 0 {
 		addError(errs, "application_configs", acs, "must contain at least one entry")
@@ -34,9 +52,6 @@ func validateApplicationConfigurations(errs validationErrors, acs map[string]app
 	for name, ac := range acs {
 		if ac.DisplayName == "" {
 			addError(errs, fmt.Sprintf("application_configs.%s.display_name", name), ac.DisplayName, "cannot not be empty")
-		}
-		if ac.AuthorizationEndpoint == "" {
-			addError(errs, fmt.Sprintf("application_configs.%s.authorization_endpoint", name), ac.AuthorizationEndpoint, "cannot not be empty")
 		}
 		if ac.Scope == "" {
 			addError(errs, fmt.Sprintf("application_configs.%s.scope", name), ac.Scope, "cannot not be empty")
