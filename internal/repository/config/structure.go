@@ -4,7 +4,7 @@ type conf struct {
 	Server             serverConfig                 `yaml:"server"`
 	Security           securityConfig               `yaml:"security"`
 	IdentityProvider   identityProviderConfig       `yaml:"identity_provider"`
-	ApplicationConfigs map[string]applicationConfig `yaml:"application_configs"`
+	ApplicationConfigs map[string]ApplicationConfig `yaml:"application_configs"`
 }
 
 type serverConfig struct {
@@ -23,7 +23,7 @@ type identityProviderConfig struct {
 	AuthRequestTimeout    int    `yaml:"auth_request_timeout_s"`
 }
 
-type applicationConfig struct {
+type ApplicationConfig struct {
 	DisplayName         string `yaml:"display_name"`
 	Scope               string `yaml:"scope"`
 	ClientId            string `yaml:"client_id"`

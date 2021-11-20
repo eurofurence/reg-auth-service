@@ -1,0 +1,46 @@
+{
+  "consumer": {
+    "name": "RegAuthService"
+  },
+  "provider": {
+    "name": "IdentityProvider"
+  },
+  "interactions": [
+    {
+      "description": "a request to the token endpoint using this authorization code with correct client credentials and correct code verifier",
+      "providerState": "the user has completed the authorization_code flow with PKCE, obtaining an authorization code",
+      "request": {
+        "method": "POST",
+        "path": "/token",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "grant_type": "authorization_code",
+          "client_id": "democlient",
+          "client_secret": "democlientsecret",
+          "code": "PzL34r_rsNOR7pvdDVbGQRdETOSSU3Tya6Z6AbE0FHFY4AtC",
+          "code_verifier": "pCAqaUVKzzeSRyp5L_ydTk38E-4PwSzJ459Xq65rrVe809vd"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "token_type": "Bearer",
+          "expires_in": 86400,
+          "access_token": "Qs9QaRHGEiSC8FwerVUSijduguq0ZlqMrOiX6Tbya7CMpyCkrQ7TK7ol9WVMis6Ul_6Nm5XV",
+          "scope": "example",
+          "refresh_token": "EXXVAtYSjg2ZX1q7u6wc8lXH"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

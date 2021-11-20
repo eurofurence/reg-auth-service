@@ -45,7 +45,7 @@ func validateIdentityProviderConfiguration(errs validationErrors, ipc identityPr
 	}
 }
 
-func validateApplicationConfigurations(errs validationErrors, acs map[string]applicationConfig) {
+func validateApplicationConfigurations(errs validationErrors, acs map[string]ApplicationConfig) {
 	if len(acs) == 0 {
 		addError(errs, "application_configs", acs, "must contain at least one entry")
 	}
