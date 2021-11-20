@@ -22,7 +22,7 @@ func init() {
 func logValidationErrors(errs validationErrors) error {
 	if len(errs) != 0 {
 		var keys []string
-		for key, _ := range errs {
+		for key := range errs {
 			keys = append(keys, key)
 		}
 		sort.Strings(keys)
