@@ -6,8 +6,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
+	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/go-chi/chi"
 	"math/big"
 	"net/http"
@@ -19,7 +19,7 @@ const response_type = "code"
 const code_challenge_method = "S256"
 
 func Create(server chi.Router) {
-	server.Get("/api/rest/v1/auth", authHandler)
+	server.Get("/v1/auth", authHandler)
 }
 
 /* Handle /auth requests.
@@ -85,6 +85,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 
 func authErrorHandler(ctx context.Context, w http.ResponseWriter, status int, msg string) {
 	logging.Ctx(ctx).Error(msg)
+	// TODO here we should display some information to the user
 	w.WriteHeader(status)
 }
 

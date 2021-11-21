@@ -38,7 +38,7 @@ func TestLogin(t *testing.T) {
 	defer tstShutdown()
 
 	docs.When("when they start an auth flow with valid reg_app_name and valid redirect_url")
-	test_url := "/api/rest/v1/auth?reg_app_name=example-service&"
+	test_url := "/v1/auth?reg_app_name=example-service&"
 	test_url = test_url + "&redirect_url=" + url.QueryEscape("https://example.com/app/?foo=abc")
 	response := tstPerformGet(test_url)
 
