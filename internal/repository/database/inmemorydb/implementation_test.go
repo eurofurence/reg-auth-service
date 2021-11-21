@@ -36,7 +36,8 @@ func TestOpenClose(t *testing.T) {
 	cut2.Open()
 	require.NotNil(t, cut2.authRequests)
 	cut2.Close()
-	require.Nil(t, cut2.authRequests)
+	// Since we are not an actual database, closing the connection will only clear the repository.
+	require.NotNil(t, cut2.authRequests)
 }
 
 func TestAddAuthRequest(t *testing.T) {
