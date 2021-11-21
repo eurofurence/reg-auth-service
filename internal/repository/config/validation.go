@@ -2,7 +2,9 @@ package config
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 )
 
 func addError(errs validationErrors, key string, value interface{}, message string) {
@@ -25,33 +27,51 @@ func validateServerConfiguration(errs validationErrors, sc serverConfig) {
 func validateSecurityConfiguration(errs validationErrors, sc securityConfig) {
 }
 
-func validateApplicationConfigurations(errs validationErrors, acs []applicationConfig) {
+func validateIdentityProviderConfiguration(errs validationErrors, ipc identityProviderConfig) {
+	if ipc.AuthorizationEndpoint == "" {
+		addError(errs, "identity_provider.authorization_endpoint", ipc.AuthorizationEndpoint, "cannot not be empty")
+	}
+	if ipc.TokenEndpoint == "" {
+		addError(errs, "identity_provider.token_endpoint", ipc.TokenEndpoint, "cannot not be empty")
+	}
+	if ipc.EndSessionEndpoint == "" {
+		addError(errs, "identity_provider.end_session_endpoint", ipc.EndSessionEndpoint, "cannot not be empty")
+	}
+	if ipc.CircuitBreakerTimeout <= 0 {
+		addError(errs, "identity_provider.circuit_breaker_timeout_ms", ipc.CircuitBreakerTimeout, "must be greater than 0")
+	}
+	if ipc.AuthRequestTimeout <= 0 {
+		addError(errs, "identity_provider.auth_request_timeout_s", ipc.AuthRequestTimeout, "must be greater than 0")
+	}
+}
+
+func validateApplicationConfigurations(errs validationErrors, acs map[string]applicationConfig) {
 	if len(acs) == 0 {
 		addError(errs, "application_configs", acs, "must contain at least one entry")
 	}
-	for i, ac := range acs {
-		if ac.Name == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].name", i), ac.Name, "cannot not be empty")
-		} else {
-			//TODO: check uniqueness of application config names
-		}
-		if ac.AuthorizationEndpoint == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].authorization_endpoint", i), ac.AuthorizationEndpoint, "cannot not be empty")
+	for name, ac := range acs {
+		if ac.DisplayName == "" {
+			addError(errs, fmt.Sprintf("application_configs.%s.display_name", name), ac.DisplayName, "cannot not be empty")
 		}
 		if ac.Scope == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].scope", i), ac.Scope, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.scope", name), ac.Scope, "cannot not be empty")
 		}
 		if ac.ClientId == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].client_id", i), ac.ClientId, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.client_id", name), ac.ClientId, "cannot not be empty")
 		}
 		if ac.ClientSecret == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].client_secret", i), ac.ClientSecret, "cannot not be empty")
+			addError(errs, fmt.Sprintf("application_configs.%s.client_secret", name), ac.ClientSecret, "cannot not be empty")
 		}
-		if ac.RedirectUrl == "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].redirect_url", i), ac.RedirectUrl, "cannot not be empty")
+		if ac.DefaultRedirectUrl == "" {
+			addError(errs, fmt.Sprintf("application_configs.%s.default_redirect_url", name), ac.DefaultRedirectUrl, "cannot not be empty")
+		}
+		if ac.RedirectUrlPattern != "" {
+			if _, regexpError := regexp.Compile(strings.ReplaceAll(ac.RedirectUrlPattern, "/", "\\/")); regexpError != nil {
+				addError(errs, fmt.Sprintf("application_configs.%s.redirect_url_pattern", name), ac.RedirectUrlPattern, fmt.Sprintf("must be a valid regular expression, but encountered compile error: %s)", regexpError))
+			}
 		}
 		if ac.CodeChallengeMethod != "S256" && ac.CodeChallengeMethod != "" {
-			addError(errs, fmt.Sprintf("application_configs[%d].code_challenge_method", i), ac.CodeChallengeMethod, "must be empty or S256")
+			addError(errs, fmt.Sprintf("application_configs.%s.code_challenge_method", name), ac.CodeChallengeMethod, "must be empty or S256")
 		}
 	}
 }
