@@ -11,7 +11,7 @@ import (
 
 var (
 	ActiveRepository dbrepo.Repository
-	pruneTicker      time.Ticker
+	pruneTicker      *time.Ticker
 	pruneStop        chan bool
 )
 
@@ -25,7 +25,7 @@ func Open() {
 	logging.NoCtx().Info("Opening inmemory database...")
 	r = inmemorydb.Create()
 	r.Open()
-	pruneTicker = *time.NewTicker(3 * time.Second)
+	pruneTicker = time.NewTicker(3 * time.Second)
 	go func() {
 		for {
 			select {

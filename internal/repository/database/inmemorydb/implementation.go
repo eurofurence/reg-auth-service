@@ -72,7 +72,7 @@ func (r *InMemoryRepository) PruneAuthRequests(ctx context.Context) (uint, error
 		}
 		return true
 	})
-	logging.Ctx(ctx).Info("Pruned ", pruneCount, " auth requests")
+	logging.Ctx(ctx).Info("Pruned ", pruneCount, " auth requests.")
 
 	return pruneCount, nil
 }
