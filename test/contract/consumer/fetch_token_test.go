@@ -25,24 +25,21 @@ func TestConsumer(t *testing.T) {
 	defer pact.Teardown()
 
 	// types and values used in interaction
-	// TODO can the IDP issue tokens using JSON Content Type? Have to try this!
 	tstAuthorizationCode := "PzL34r_rsNOR7pvdDVbGQRdETOSSU3Tya6Z6AbE0FHFY4AtC"
 	tstPkceVerifier := "pCAqaUVKzzeSRyp5L_ydTk38E-4PwSzJ459Xq65rrVe809vd"
-	tstRequest := idpclient.TokenRequestDto{
-		GrantType:    "authorization_code",
-		ClientId:     "democlient",
-		ClientSecret: "democlientsecret",
-		// RedirectUri:  "https://mydemoapp/landing",
-		Code:         tstAuthorizationCode,
-		CodeVerifier: tstPkceVerifier,
-	}
+	tstRequestBody := "client_id=democlient" +
+		"&client_secret=democlientsecret" +
+		"&code=" + tstAuthorizationCode +
+		"&code_verifier=" + tstPkceVerifier +
+		"&grant_type=authorization_code" +
+		"&redirect_uri=https%3A%2F%2Fexample.com%2Fapp%2F"
 
 	tstExpectedResponse := idp.TokenResponseDto{
-		TokenType: "Bearer",
+		AccessToken: "XYZ",
 		ExpiresIn: 86400,
-		AccessToken: "Qs9QaRHGEiSC8FwerVUSijduguq0ZlqMrOiX6Tbya7CMpyCkrQ7TK7ol9WVMis6Ul_6Nm5XV",
+		IdToken: "abc",
 		Scope: "example",
-		RefreshToken: "EXXVAtYSjg2ZX1q7u6wc8lXH",
+		TokenType: "Bearer",
 	}
 
 	// Pass in test case (consumer side)
@@ -73,10 +70,10 @@ func TestConsumer(t *testing.T) {
 		WithRequest(dsl.Request{
 			Method: http.MethodPost,
 			Headers: dsl.MapMatcher{
-				headers.ContentType:   dsl.String(media.ContentTypeApplicationJson),
+				headers.ContentType:   dsl.String(media.ContentTypeApplicationXWwwFormUrlencoded),
 			},
 			Path: dsl.String("/token"),
-			Body: tstRequest,
+			Body: tstRequestBody,
 		}).
 		WillRespondWith(dsl.Response{
 			Status:  200,

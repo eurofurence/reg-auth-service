@@ -7,3 +7,4 @@ reg-auth-service
 config.yaml
 test/**/*.log
 *.http
+tmp.go
