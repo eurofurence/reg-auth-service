@@ -8,6 +8,7 @@ import (
 
 	"github.com/eurofurence/reg-auth-service/internal/entity"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database/dbrepo"
+	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 )
 
 type InMemoryRepository struct {
@@ -63,6 +64,7 @@ func (r *InMemoryRepository) DeleteAuthRequestByState(ctx context.Context, state
 func (r *InMemoryRepository) PruneAuthRequests(ctx context.Context) (uint, error) {
 	pruneCount := uint(0)
 
+	logging.Ctx(ctx).Info("Pruning auth requests ...")
 	r.authRequests.Range(func(state, ar interface{}) bool {
 		if ar.(*entity.AuthRequest).ExpiresAt.Before(time.Now()) {
 			r.authRequests.Delete(state)
@@ -70,6 +72,7 @@ func (r *InMemoryRepository) PruneAuthRequests(ctx context.Context) (uint, error
 		}
 		return true
 	})
+	logging.Ctx(ctx).Info("Pruned ", pruneCount, " auth requests")
 
 	return pruneCount, nil
 }
