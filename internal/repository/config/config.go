@@ -14,6 +14,10 @@ func TokenEndpoint() string {
 	return configuration().IdentityProvider.TokenEndpoint
 }
 
+func AuthorizationEndpoint() string {
+	return configuration().IdentityProvider.AuthorizationEndpoint
+}
+
 func CircuitBreakerTimeoutMilliseconds() int {
 	return configuration().IdentityProvider.CircuitBreakerTimeoutMS
 }
