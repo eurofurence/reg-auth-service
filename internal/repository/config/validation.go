@@ -70,8 +70,5 @@ func validateApplicationConfigurations(errs validationErrors, acs map[string]App
 				addError(errs, fmt.Sprintf("application_configs.%s.redirect_url_pattern", name), ac.RedirectUrlPattern, fmt.Sprintf("must be a valid regular expression, but encountered compile error: %s)", regexpError))
 			}
 		}
-		if ac.CodeChallengeMethod != "S256" && ac.CodeChallengeMethod != "" {
-			addError(errs, fmt.Sprintf("application_configs.%s.code_challenge_method", name), ac.CodeChallengeMethod, "must be empty or S256")
-		}
 	}
 }
