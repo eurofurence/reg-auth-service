@@ -44,7 +44,7 @@ func TestAddAuthRequest(t *testing.T) {
 	tstSetup()
 	defer tstShutdown()
 	state := "test-state"
-	ar := &entity.AuthRequest{State: state}
+	ar := &entity.AuthRequest{State: state, ExpiresAt: time.Now().Add(time.Hour)}
 	err := cut.AddAuthRequest(context.TODO(), ar)
 	require.Nil(t, err, "unexpected error during add")
 
