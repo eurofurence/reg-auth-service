@@ -120,7 +120,6 @@ func createValidApplicationConfig() ApplicationConfig {
 		ClientId:            "test-client-id",
 		ClientSecret:        "test-client-secret",
 		DefaultRedirectUrl:  "https://target.example.com/app",
-		CodeChallengeMethod: "S256",
 	}
 }
 
@@ -233,36 +232,4 @@ func TestValidateApplicationConfigs_invalidRedirectUrlPattern(t *testing.T) {
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 1, len(errs))
 	require.Equal(t, []string{"value '(iammissingaroundbracketattheendohno' must be a valid regular expression, but encountered compile error: error parsing regexp: missing closing ): `(iammissingaroundbracketattheendohno`)"}, errs["application_configs.test-application-config.redirect_url_pattern"])
-}
-
-func TestValidateApplicationConfigs_emptyCodeChallengeMethod(t *testing.T) {
-	docs.Description("validation should accept an empty code challenge method in application config")
-	errs := validationErrors{}
-	config := createValidApplicationConfig()
-	config.CodeChallengeMethod = ""
-	configs := map[string]ApplicationConfig{"test-application-config": config}
-	validateApplicationConfigurations(errs, configs)
-	require.Equal(t, 0, len(errs))
-}
-
-func TestValidateApplicationConfigs_invalidCodeChallengeMethod(t *testing.T) {
-	docs.Description("validation should catch an invalid code challenge method in application config")
-	errs := validationErrors{}
-	config := createValidApplicationConfig()
-	config.CodeChallengeMethod = "INV"
-	configs := map[string]ApplicationConfig{"invalid-test-application-config": config}
-	validateApplicationConfigurations(errs, configs)
-	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value 'INV' must be empty or S256"}, errs["application_configs.invalid-test-application-config.code_challenge_method"])
-}
-
-func TestValidateApplicationConfigs_invalidCodeChallengeMethodWithMultipleConfigs(t *testing.T) {
-	docs.Description("validation should catch an invalid code challenge method in other application config")
-	errs := validationErrors{}
-	config := createValidApplicationConfig()
-	config.CodeChallengeMethod = "INV"
-	configs := map[string]ApplicationConfig{"test-application-config": createValidApplicationConfig(), "invalid-test-application-config": config}
-	validateApplicationConfigurations(errs, configs)
-	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value 'INV' must be empty or S256"}, errs["application_configs.invalid-test-application-config.code_challenge_method"])
 }
