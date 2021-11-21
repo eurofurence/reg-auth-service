@@ -27,6 +27,7 @@ func Open() {
 	r = inmemorydb.Create()
 	r.Open()
 	pruneTicker = time.NewTicker(config.AuthRequestTimeout())
+	pruneStop = make(chan bool)
 	go func() {
 		for {
 			select {
