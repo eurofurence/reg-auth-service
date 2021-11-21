@@ -3,8 +3,9 @@ package downstreamcall
 import (
 	"context"
 	"fmt"
-	"github.com/afex/hystrix-go/hystrix"
 	"net/http"
+
+	"github.com/afex/hystrix-go/hystrix"
 )
 
 // ConfigureHystrixCommand configures hystrix command timeout, concurrency and error threshold

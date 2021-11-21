@@ -1,6 +1,9 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func ServerAddr() string {
 	return ":" + configuration().Server.Port
@@ -18,8 +21,12 @@ func AuthorizationEndpoint() string {
 	return configuration().IdentityProvider.AuthorizationEndpoint
 }
 
-func CircuitBreakerTimeoutMilliseconds() int {
-	return configuration().IdentityProvider.CircuitBreakerTimeoutMS
+func CircuitBreakerTimeout() time.Duration {
+	return configuration().IdentityProvider.CircuitBreakerTimeout
+}
+
+func AuthRequestTimeout() time.Duration {
+	return configuration().IdentityProvider.AuthRequestTimeout
 }
 
 func GetApplicationConfig(applicationName string) (ApplicationConfig, error) {

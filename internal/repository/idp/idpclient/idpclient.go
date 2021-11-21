@@ -3,12 +3,12 @@ package idpclient
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/eurofurence/reg-auth-service/internal/repository/util/downstreamcall"
-	"net/http"
-	"time"
 )
 
 type TokenRequestDto struct {
@@ -29,14 +29,14 @@ const HystrixCommandName = "idp_token"
 // --- instance creation ---
 
 func New() idp.IdentityProviderClient {
-	timeoutMs := config.CircuitBreakerTimeoutMilliseconds()
+	timeout := config.CircuitBreakerTimeout()
 
-	downstreamcall.ConfigureHystrixCommand(HystrixCommandName, int(timeoutMs))
+	downstreamcall.ConfigureHystrixCommand(HystrixCommandName, int(timeout.Milliseconds()))
 
 	return &IdentityProviderClientImpl{
 		netClient: &http.Client{
 			// theoretically, this is no longer necessary with hystrix
-			Timeout: time.Millisecond * time.Duration(timeoutMs) * 2,
+			Timeout: timeout * 2,
 		},
 	}
 }
@@ -48,7 +48,7 @@ func New() idp.IdentityProviderClient {
 // intentionally leaving out fields to demo tolerant reader
 
 type ErrorDto struct {
-	Message   string `json:"message"`
+	Message string `json:"message"`
 }
 
 func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*idp.TokenResponseDto, error) {
@@ -57,11 +57,11 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 		return nil, err
 	}
 	requestDto := TokenRequestDto{
-		GrantType: "authorization_code",
-		ClientId: appConfig.ClientId,
+		GrantType:    "authorization_code",
+		ClientId:     appConfig.ClientId,
 		ClientSecret: appConfig.ClientSecret,
 		// RedirectUri: config.RedirectUri(applicationConfig),
-		Code: authorizationCode,
+		Code:         authorizationCode,
 		CodeVerifier: pkceVerifier,
 	}
 	requestBody, err := downstreamcall.RenderJson(requestDto)

@@ -1,10 +1,12 @@
 package acceptance
 
 import (
-	"github.com/eurofurence/reg-auth-service/internal/repository/config"
-	"github.com/eurofurence/reg-auth-service/web"
-	"net/http/httptest"
 	"log"
+	"net/http/httptest"
+
+	"github.com/eurofurence/reg-auth-service/internal/repository/config"
+	"github.com/eurofurence/reg-auth-service/internal/repository/database"
+	"github.com/eurofurence/reg-auth-service/web"
 )
 
 // placing these here because they are package global
@@ -13,11 +15,12 @@ var (
 	ts *httptest.Server
 )
 
-const tstDefaultConfigFile =  "../../test/resources/config-acceptancetests.yaml"
+const tstDefaultConfigFile = "../../test/resources/config-acceptancetests.yaml"
 
 func tstSetup(configFilePath string) {
 	tstSetupConfig(configFilePath)
 	tstSetupHttpTestServer()
+	database.Open()
 }
 
 func tstSetupConfig(configFilePath string) {
@@ -33,5 +36,6 @@ func tstSetupHttpTestServer() {
 }
 
 func tstShutdown() {
+	database.Close()
 	ts.Close()
 }

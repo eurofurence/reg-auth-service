@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 
 	"github.com/eurofurence/reg-auth-service/docs"
 	"github.com/stretchr/testify/require"
@@ -37,11 +38,11 @@ func TestValidateServerConfiguration_privileged(t *testing.T) {
 
 func createValidIdentityProviderConfiguration() identityProviderConfig {
 	return identityProviderConfig{
-		AuthorizationEndpoint:   "https://example.com/auth",
-		TokenEndpoint:           "https://example.com/token",
-		EndSessionEndpoint:      "https://example.com/logout",
-		CircuitBreakerTimeoutMS: 21,
-		AuthRequestTimeoutS:     42,
+		AuthorizationEndpoint: "https://example.com/auth",
+		TokenEndpoint:         "https://example.com/token",
+		EndSessionEndpoint:    "https://example.com/logout",
+		CircuitBreakerTimeout: time.Minute,
+		AuthRequestTimeout:    time.Minute,
 	}
 }
 
@@ -76,41 +77,40 @@ func TestValidateIdentityProviderConfiguration_emptyEndSessionEndpoint(t *testin
 }
 
 func TestValidateIdentityProviderConfiguration_zeroCircuitBreakerTimeout(t *testing.T) {
-	docs.Description("validation should catch a zero circuit breaker timeout in identity provider config")
+	docs.Description("validation should accept a zero circuit breaker timeout in identity provider config")
 	errs := validationErrors{}
 	config := createValidIdentityProviderConfiguration()
-	config.CircuitBreakerTimeoutMS = 0
+	config.CircuitBreakerTimeout = 0
 	validateIdentityProviderConfiguration(errs, config)
-	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '0' must be greater than 0"}, errs["identity_provider.circuit_breaker_timeout_ms"])
+	require.Equal(t, 0, len(errs))
 }
 func TestValidateIdentityProviderConfiguration_negativeCircuitBreakerTimeout(t *testing.T) {
 	docs.Description("validation should catch a negative circuit breaker timeout in identity provider config")
 	errs := validationErrors{}
 	config := createValidIdentityProviderConfiguration()
-	config.CircuitBreakerTimeoutMS = -21
+	config.CircuitBreakerTimeout = -time.Second
 	validateIdentityProviderConfiguration(errs, config)
 	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '-21' must be greater than 0"}, errs["identity_provider.circuit_breaker_timeout_ms"])
+	require.Equal(t, []string{"value '-1s' cannot be negative"}, errs["identity_provider.circuit_breaker_timeout"])
 }
 
 func TestValidateIdentityProviderConfiguration_zeroAuthRequestTimeout(t *testing.T) {
-	docs.Description("validation should catch a zero auth request timeout in identity provider config")
+	docs.Description("validation should accept a zero auth request timeout in identity provider config")
 	errs := validationErrors{}
 	config := createValidIdentityProviderConfiguration()
-	config.AuthRequestTimeoutS = 0
+	config.AuthRequestTimeout = 0
 	validateIdentityProviderConfiguration(errs, config)
-	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '0' must be greater than 0"}, errs["identity_provider.auth_request_timeout_s"])
+	require.Equal(t, 0, len(errs))
 }
+
 func TestValidateIdentityProviderConfiguration_negativeAuthRequestTimeout(t *testing.T) {
 	docs.Description("validation should catch a negative auth request timeout in identity provider config")
 	errs := validationErrors{}
 	config := createValidIdentityProviderConfiguration()
-	config.AuthRequestTimeoutS = -21
+	config.AuthRequestTimeout = -time.Second
 	validateIdentityProviderConfiguration(errs, config)
 	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '-21' must be greater than 0"}, errs["identity_provider.auth_request_timeout_s"])
+	require.Equal(t, []string{"value '-1s' cannot be negative"}, errs["identity_provider.auth_request_timeout"])
 }
 
 func createValidApplicationConfig() ApplicationConfig {
