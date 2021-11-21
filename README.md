@@ -1,7 +1,7 @@
 # reg-auth-service
 
-<img src="https://github.com/eurofurence/reg-auth-service/actions/workflows/go.yml/badge.svg" alt="test status"/>
-<img src="https://github.com/eurofurence/reg-auth-service/actions/workflows/codeql-analysis.yml/badge.svg" alt="code quality status"/>
+<img src="https://github.com/Fenrikur/reg-auth-service/actions/workflows/go.yml/badge.svg" alt="test status"/>
+<img src="https://github.com/Fenrikur/reg-auth-service/actions/workflows/codeql-analysis.yml/badge.svg" alt="code quality status"/>
 
 ## Overview
 
