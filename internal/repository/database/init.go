@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database/dbrepo"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database/inmemorydb"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
@@ -25,7 +26,7 @@ func Open() {
 	logging.NoCtx().Info("Opening inmemory database...")
 	r = inmemorydb.Create()
 	r.Open()
-	pruneTicker = time.NewTicker(3 * time.Second)
+	pruneTicker = time.NewTicker(config.AuthRequestTimeout())
 	go func() {
 		for {
 			select {
