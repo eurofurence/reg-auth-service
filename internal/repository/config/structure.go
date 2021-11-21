@@ -16,11 +16,11 @@ type securityConfig struct {
 }
 
 type identityProviderConfig struct {
-	AuthorizationEndpoint string `yaml:"authorization_endpoint"`
-	TokenEndpoint         string `yaml:"token_endpoint"`
-	EndSessionEndpoint    string `yaml:"end_session_endpoint"`
-	CircuitBreakerTimeout int    `yaml:"circuit_breaker_timeout_ms"`
-	AuthRequestTimeout    int    `yaml:"auth_request_timeout_s"`
+	AuthorizationEndpoint   string `yaml:"authorization_endpoint"`
+	TokenEndpoint           string `yaml:"token_endpoint"`
+	EndSessionEndpoint      string `yaml:"end_session_endpoint"`
+	CircuitBreakerTimeoutMS int    `yaml:"circuit_breaker_timeout_ms"`
+	AuthRequestTimeoutS     int    `yaml:"auth_request_timeout_s"`
 }
 
 type ApplicationConfig struct {

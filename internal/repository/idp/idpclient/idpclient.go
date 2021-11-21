@@ -29,8 +29,7 @@ const HystrixCommandName = "idp_token"
 // --- instance creation ---
 
 func New() idp.IdentityProviderClient {
-	// TODO lookup from configuration
-	timeoutMs := 1000 // configuration.HttpRequestTimeoutMs()
+	timeoutMs := config.CircuitBreakerTimeoutMilliseconds()
 
 	downstreamcall.ConfigureHystrixCommand(HystrixCommandName, int(timeoutMs))
 

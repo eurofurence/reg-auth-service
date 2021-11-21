@@ -14,6 +14,10 @@ func TokenEndpoint() string {
 	return configuration().IdentityProvider.TokenEndpoint
 }
 
+func CircuitBreakerTimeoutMilliseconds() int {
+	return configuration().IdentityProvider.CircuitBreakerTimeoutMS
+}
+
 func GetApplicationConfig(applicationName string) (ApplicationConfig, error) {
 	appConfig, found := configuration().ApplicationConfigs[applicationName]
 	if found {
