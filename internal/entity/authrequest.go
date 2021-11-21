@@ -7,6 +7,6 @@ import (
 type AuthRequest struct {
 	State            string
 	ExpiresAt        time.Time
-	DropoffUrl       string
+	DropOffUrl       string
 	PkceCodeVerifier string
 }
