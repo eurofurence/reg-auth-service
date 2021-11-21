@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"time"
 
 	"github.com/eurofurence/reg-auth-service/internal/entity"
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
@@ -157,6 +158,7 @@ func storeFlowState(ctx context.Context, state string, codeVerifier string, drop
 		State:            state,
 		PkceCodeVerifier: codeVerifier,
 		DropOffUrl:       dropOffUrl,
+		ExpiresAt:        time.Now().Add(config.AuthRequestTimeout()),
 	})
 }
 
