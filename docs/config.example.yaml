@@ -16,4 +16,3 @@ application_configs:
     client_secret: IAmVerySecret!
     default_redirect_url: https://example.com/app/
     redirect_url_pattern: https://example.com/app/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
-    code_challenge_method: S256
