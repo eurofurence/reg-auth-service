@@ -1,6 +1,8 @@
 .idea/**
+*.iml
 *.exe
 main
 reg-auth-service
 **/*.swp
 config.yaml
+test/**/*.log

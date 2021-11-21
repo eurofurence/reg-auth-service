@@ -37,15 +37,15 @@ func validateIdentityProviderConfiguration(errs validationErrors, ipc identityPr
 	if ipc.EndSessionEndpoint == "" {
 		addError(errs, "identity_provider.end_session_endpoint", ipc.EndSessionEndpoint, "cannot not be empty")
 	}
-	if ipc.CircuitBreakerTimeout <= 0 {
-		addError(errs, "identity_provider.circuit_breaker_timeout_ms", ipc.CircuitBreakerTimeout, "must be greater than 0")
+	if ipc.CircuitBreakerTimeoutMS <= 0 {
+		addError(errs, "identity_provider.circuit_breaker_timeout_ms", ipc.CircuitBreakerTimeoutMS, "must be greater than 0")
 	}
-	if ipc.AuthRequestTimeout <= 0 {
-		addError(errs, "identity_provider.auth_request_timeout_s", ipc.AuthRequestTimeout, "must be greater than 0")
+	if ipc.AuthRequestTimeoutS <= 0 {
+		addError(errs, "identity_provider.auth_request_timeout_s", ipc.AuthRequestTimeoutS, "must be greater than 0")
 	}
 }
 
-func validateApplicationConfigurations(errs validationErrors, acs map[string]applicationConfig) {
+func validateApplicationConfigurations(errs validationErrors, acs map[string]ApplicationConfig) {
 	if len(acs) == 0 {
 		addError(errs, "application_configs", acs, "must contain at least one entry")
 	}

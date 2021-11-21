@@ -63,7 +63,7 @@ func validateConfiguration(newConfigurationData *conf) error {
 	return logValidationErrors(errs)
 }
 
-func parseAndOverwriteConfig(yamlFile []byte) error {
+func ParseAndOverwriteConfig(yamlFile []byte) error {
 	newConfigurationData := &conf{}
 	err := yaml.UnmarshalStrict(yamlFile, newConfigurationData)
 	if err != nil {
@@ -92,6 +92,6 @@ func LoadConfiguration(configurationFilename string) error {
 		return err
 	}
 
-	err = parseAndOverwriteConfig(yamlFile)
+	err = ParseAndOverwriteConfig(yamlFile)
 	return err
 }

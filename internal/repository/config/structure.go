@@ -4,7 +4,7 @@ type conf struct {
 	Server             serverConfig                 `yaml:"server"`
 	Security           securityConfig               `yaml:"security"`
 	IdentityProvider   identityProviderConfig       `yaml:"identity_provider"`
-	ApplicationConfigs map[string]applicationConfig `yaml:"application_configs"`
+	ApplicationConfigs map[string]ApplicationConfig `yaml:"application_configs"`
 }
 
 type serverConfig struct {
@@ -16,14 +16,14 @@ type securityConfig struct {
 }
 
 type identityProviderConfig struct {
-	AuthorizationEndpoint string `yaml:"authorization_endpoint"`
-	TokenEndpoint         string `yaml:"token_endpoint"`
-	EndSessionEndpoint    string `yaml:"end_session_endpoint"`
-	CircuitBreakerTimeout int    `yaml:"circuit_breaker_timeout_ms"`
-	AuthRequestTimeout    int    `yaml:"auth_request_timeout_s"`
+	AuthorizationEndpoint   string `yaml:"authorization_endpoint"`
+	TokenEndpoint           string `yaml:"token_endpoint"`
+	EndSessionEndpoint      string `yaml:"end_session_endpoint"`
+	CircuitBreakerTimeoutMS int    `yaml:"circuit_breaker_timeout_ms"`
+	AuthRequestTimeoutS     int    `yaml:"auth_request_timeout_s"`
 }
 
-type applicationConfig struct {
+type ApplicationConfig struct {
 	DisplayName         string `yaml:"display_name"`
 	Scope               string `yaml:"scope"`
 	ClientId            string `yaml:"client_id"`
