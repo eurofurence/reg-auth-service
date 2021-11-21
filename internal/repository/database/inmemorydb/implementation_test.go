@@ -101,24 +101,23 @@ func TestDeleteAuthRequestByStateNotFound(t *testing.T) {
 	tstSetup()
 	defer tstShutdown()
 	state := "inexistent-state"
-	ar, err := cut.GetAuthRequestByState(context.TODO(), state)
+	err := cut.DeleteAuthRequestByState(context.TODO(), state)
 	require.NotNil(t, err, "no error occurred, although it should have")
-	require.Equal(t, fmt.Sprintf("cannot get auth request '%s' - not present", state), err.Error(), "unexpected error message")
-	require.Nil(t, ar, "result entity should be nil")
+	require.Equal(t, fmt.Sprintf("cannot delete auth request '%s' - not present", state), err.Error(), "unexpected error message")
 }
 
 func TestPruneAuthRequestsEmpty(t *testing.T) {
-	docs.Description("it should be possible to add an auth request and then retrieve it again")
+	docs.Description("it should be possible to prune auth requests even if none are available")
 	tstSetup()
 	defer tstShutdown()
 
 	pruneCount, err := cut.PruneAuthRequests(context.TODO())
-	require.Nil(t, err, "unexpected error during get")
+	require.Nil(t, err, "unexpected error during prune")
 	require.Equal(t, uint(0), pruneCount, "unexpected number of pruned entities")
 }
 
 func TestPruneAuthRequestsNoExpired(t *testing.T) {
-	docs.Description("it should be possible to add an auth request and then retrieve it again")
+	docs.Description("it should be possible to prune auth requests without removing any when none have expired")
 	tstSetup()
 	defer tstShutdown()
 	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-1", ExpiresAt: time.Now().Add(time.Hour)})
@@ -126,32 +125,50 @@ func TestPruneAuthRequestsNoExpired(t *testing.T) {
 	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-3", ExpiresAt: time.Now().Add(time.Hour)})
 
 	pruneCount, err := cut.PruneAuthRequests(context.TODO())
-	require.Nil(t, err, "unexpected error during get")
+	require.Nil(t, err, "unexpected error during prune")
 	require.Equal(t, uint(0), pruneCount, "unexpected number of pruned entities")
 }
 
 func TestPruneAuthRequestsSingleExpired(t *testing.T) {
-	docs.Description("it should be possible to add an auth request and then retrieve it again")
+	docs.Description("it should be possible to prune auth requests when only one has expired and verify it has been removed")
 	tstSetup()
 	defer tstShutdown()
+	expiredState2 := "test-state-2-expired"
 	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-1", ExpiresAt: time.Now().Add(time.Hour)})
-	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-2-expired", ExpiresAt: time.Now().Add(-time.Hour)})
+	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: expiredState2, ExpiresAt: time.Now().Add(-time.Hour)})
 	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-3", ExpiresAt: time.Now().Add(time.Hour)})
 
 	pruneCount, err := cut.PruneAuthRequests(context.TODO())
-	require.Nil(t, err, "unexpected error during get")
+	require.Nil(t, err, "unexpected error during prune")
 	require.Equal(t, uint(1), pruneCount, "unexpected number of pruned entities")
+
+	ar, err := cut.GetAuthRequestByState(context.TODO(), expiredState2)
+	require.NotNil(t, err, "no error occurred, although it should have")
+	require.Equal(t, fmt.Sprintf("cannot get auth request '%s' - not present", expiredState2), err.Error(), "unexpected error message")
+	require.Nil(t, ar, "result entity should be nil")
 }
 
 func TestPruneAuthRequestsMultipleExpired(t *testing.T) {
-	docs.Description("it should be possible to add an auth request and then retrieve it again")
+	docs.Description("it should be possible to prune auth requests when multiple have expired and verify they have been removed")
 	tstSetup()
 	defer tstShutdown()
-	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-1-expired", ExpiresAt: time.Now().Add(-time.Hour)})
+	expiredState1 := "test-state-1-expired"
+	expiredState3 := "test-state-3-expired"
+	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: expiredState1, ExpiresAt: time.Now().Add(-time.Hour)})
 	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-2", ExpiresAt: time.Now().Add(time.Hour)})
-	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: "test-state-3-expired", ExpiresAt: time.Now().Add(-time.Hour)})
+	cut.AddAuthRequest(context.TODO(), &entity.AuthRequest{State: expiredState3, ExpiresAt: time.Now().Add(-time.Hour)})
 
 	pruneCount, err := cut.PruneAuthRequests(context.TODO())
-	require.Nil(t, err, "unexpected error during get")
+	require.Nil(t, err, "unexpected error during prune")
 	require.Equal(t, uint(2), pruneCount, "unexpected number of pruned entities")
+
+	ar1, err := cut.GetAuthRequestByState(context.TODO(), expiredState1)
+	require.NotNil(t, err, "no error occurred, although it should have")
+	require.Equal(t, fmt.Sprintf("cannot get auth request '%s' - not present", expiredState1), err.Error(), "unexpected error message")
+	require.Nil(t, ar1, "result entity should be nil")
+
+	ar2, err := cut.GetAuthRequestByState(context.TODO(), expiredState3)
+	require.NotNil(t, err, "no error occurred, although it should have")
+	require.Equal(t, fmt.Sprintf("cannot get auth request '%s' - not present", expiredState3), err.Error(), "unexpected error message")
+	require.Nil(t, ar2, "result entity should be nil")
 }
