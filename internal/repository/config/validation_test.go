@@ -41,7 +41,7 @@ func createValidIdentityProviderConfiguration() identityProviderConfig {
 		AuthorizationEndpoint: "https://example.com/auth",
 		TokenEndpoint:         "https://example.com/token",
 		EndSessionEndpoint:    "https://example.com/logout",
-		CircuitBreakerTimeout: time.Minute,
+		TokenRequestTimeout:   time.Minute,
 		AuthRequestTimeout:    time.Minute,
 	}
 }
@@ -76,22 +76,22 @@ func TestValidateIdentityProviderConfiguration_emptyEndSessionEndpoint(t *testin
 	require.Equal(t, []string{"value '' cannot not be empty"}, errs["identity_provider.end_session_endpoint"])
 }
 
-func TestValidateIdentityProviderConfiguration_zeroCircuitBreakerTimeout(t *testing.T) {
-	docs.Description("validation should accept a zero circuit breaker timeout in identity provider config")
+func TestValidateIdentityProviderConfiguration_zeroTokenRequestTimeout(t *testing.T) {
+	docs.Description("validation should accept a zero token request timeout in identity provider config (means no timeout, not recommended)")
 	errs := validationErrors{}
 	config := createValidIdentityProviderConfiguration()
-	config.CircuitBreakerTimeout = 0
+	config.TokenRequestTimeout = 0
 	validateIdentityProviderConfiguration(errs, config)
 	require.Equal(t, 0, len(errs))
 }
-func TestValidateIdentityProviderConfiguration_negativeCircuitBreakerTimeout(t *testing.T) {
-	docs.Description("validation should catch a negative circuit breaker timeout in identity provider config")
+func TestValidateIdentityProviderConfiguration_negativeTokenRequestTimeout(t *testing.T) {
+	docs.Description("validation should catch a negative token request timeout in identity provider config")
 	errs := validationErrors{}
 	config := createValidIdentityProviderConfiguration()
-	config.CircuitBreakerTimeout = -time.Second
+	config.TokenRequestTimeout = -time.Second
 	validateIdentityProviderConfiguration(errs, config)
 	require.Equal(t, 1, len(errs))
-	require.Equal(t, []string{"value '-1s' cannot be negative"}, errs["identity_provider.circuit_breaker_timeout"])
+	require.Equal(t, []string{"value '-1s' cannot be negative"}, errs["identity_provider.token_request_timeout"])
 }
 
 func TestValidateIdentityProviderConfiguration_zeroAuthRequestTimeout(t *testing.T) {

@@ -16,19 +16,18 @@ type IdentityProviderClientImpl struct {
 	netClient *http.Client
 }
 
-const HystrixCommandName = "idp_token"
+const CommandName = "idp_token"
 
 // --- instance creation ---
 
 func New() idp.IdentityProviderClient {
-	timeout := config.CircuitBreakerTimeout()
+	timeout := config.TokenRequestTimeout()
 
-	downstreamcall.ConfigureHystrixCommand(HystrixCommandName, int(timeout.Milliseconds()))
+	downstreamcall.ConfigureGobreakerCommand(CommandName)
 
 	return &IdentityProviderClientImpl{
 		netClient: &http.Client{
-			// theoretically, this is no longer necessary with hystrix
-			Timeout: timeout * 2,
+			Timeout: timeout,
 		},
 	}
 }
@@ -65,9 +64,7 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 
 	tokenEndpoint := config.TokenEndpoint()
 
-	// TODO: fix hystrix
-	// responseBody, httpstatus, err := downstreamcall.HystrixPerformPOST(ctx, HystrixCommandName, i.netClient, tokenEndpoint, requestBody)
-	responseBody, httpstatus, err := downstreamcall.PerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
+	responseBody, httpstatus, err := downstreamcall.GobreakerPerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
 
 	if err != nil || httpstatus != http.StatusOK {
 		if err == nil {

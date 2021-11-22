@@ -6,7 +6,7 @@ identity_provider:
   authorization_endpoint: https://auth.example.com/auth
   token_endpoint: https://auth.example.com/token
   end_session_endpoint: https://auth.example.com/logout
-  circuit_breaker_timeout: 30s
+  token_request_timeout: 5s
   auth_request_timeout: 600s
 application_configs:
   example-service:
