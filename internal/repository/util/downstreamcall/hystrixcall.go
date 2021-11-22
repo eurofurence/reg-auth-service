@@ -22,8 +22,8 @@ func ConfigureHystrixCommand(hystrixCommandName string, timeoutMs int) {
 // The request is wrapped with a hystrix circuit breaker and timeout.
 //
 // Note: you must make at least one call to ConfigureHystrixCommand() before calling this.
-func HystrixPerformPOST(ctx context.Context, hystrixCommandName string, httpClient *http.Client, url string, requestBody string) (string, int, error) {
-	return hystrixPerformWithBody(ctx, hystrixCommandName, http.MethodPost, httpClient, url, requestBody)
+func HystrixPerformPOST(ctx context.Context, hystrixCommandName string, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
+	return hystrixPerformWithBody(ctx, hystrixCommandName, http.MethodPost, httpClient, url, requestBody, contentType)
 }
 
 // HystrixPerformPUT performs a http PUT, returning the response body and status and passing on the request id if present in the context.
@@ -31,8 +31,8 @@ func HystrixPerformPOST(ctx context.Context, hystrixCommandName string, httpClie
 // The request is wrapped with a hystrix circuit breaker and timeout.
 //
 // Note: you must make at least one call to ConfigureHystrixCommand() before calling this.
-func HystrixPerformPUT(ctx context.Context, hystrixCommandName string, httpClient *http.Client, url string, requestBody string) (string, int, error) {
-	return hystrixPerformWithBody(ctx, hystrixCommandName, http.MethodPut, httpClient, url, requestBody)
+func HystrixPerformPUT(ctx context.Context, hystrixCommandName string, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
+	return hystrixPerformWithBody(ctx, hystrixCommandName, http.MethodPut, httpClient, url, requestBody, contentType)
 }
 
 // HystrixPerformGET performs a http GET, returning the response body and status and passing on the request id if present in the context.
@@ -52,15 +52,15 @@ type responseInfo struct {
 }
 
 func hystrixPerformNoBody(ctx context.Context, hystrixCommandName string, method string, httpClient *http.Client, url string) (string, int, error) {
-	return hystrixPerformWithBody(ctx, hystrixCommandName, method, httpClient, url, "")
+	return hystrixPerformWithBody(ctx, hystrixCommandName, method, httpClient, url, "", "")
 }
 
-func hystrixPerformWithBody(ctx context.Context, hystrixCommandName string, method string, httpClient *http.Client, url string, requestBody string) (string, int, error) {
+func hystrixPerformWithBody(ctx context.Context, hystrixCommandName string, method string, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
 	output := make(chan responseInfo, 1)
 
 	// hystrix.DoC blocks until either completed or error returned
 	err := hystrix.DoC(ctx, hystrixCommandName, func(subctx context.Context) error {
-		responseBody, httpstatus, innerErr := performWithBody(subctx, method, httpClient, url, requestBody)
+		responseBody, httpstatus, innerErr := performWithBody(subctx, method, httpClient, url, requestBody, contentType)
 		output <- responseInfo{
 			body:   responseBody,
 			status: httpstatus,

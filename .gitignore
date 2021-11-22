@@ -6,3 +6,5 @@ reg-auth-service
 **/*.swp
 config.yaml
 test/**/*.log
+*.http
+tmp.go

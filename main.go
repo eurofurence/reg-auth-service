@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging/consolelogging/logformat"
 	"github.com/eurofurence/reg-auth-service/web"
+	"log"
 )
 
 func main() {

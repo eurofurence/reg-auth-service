@@ -3,22 +3,14 @@ package idpclient
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/eurofurence/reg-auth-service/internal/repository/util/downstreamcall"
+	"github.com/eurofurence/reg-auth-service/web/util/media"
+	"net/http"
+	"net/url"
 )
-
-type TokenRequestDto struct {
-	GrantType    string `json:"grant_type"`
-	ClientId     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-	// RedirectUri  string `json:"redirect_uri"`
-	Code         string `json:"code"`
-	CodeVerifier string `json:"code_verifier"`
-}
 
 type IdentityProviderClientImpl struct {
 	netClient *http.Client
@@ -43,35 +35,39 @@ func New() idp.IdentityProviderClient {
 
 // --- implementation of repository interface ---
 
-// TODO - does the IDP have an error structure, and what is it like?
-
-// intentionally leaving out fields to demo tolerant reader
+// can leave out fields to demo tolerant reader
 
 type ErrorDto struct {
-	Message string `json:"message"`
+	ErrorCode        string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+}
+
+func TokenRequestBody(appConfig config.ApplicationConfig, authorizationCode string, pkceVerifier string) string {
+	parameters := url.Values{}
+	parameters.Set("grant_type", "authorization_code")
+	parameters.Set("client_id", appConfig.ClientId)
+	parameters.Set("client_secret", appConfig.ClientSecret)
+	parameters.Set("redirect_uri", appConfig.DefaultRedirectUrl)
+	parameters.Set("code", authorizationCode)
+	parameters.Set("code_verifier", pkceVerifier)
+	requestBody := parameters.Encode()
+	return requestBody
 }
 
 func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*idp.TokenResponseDto, error) {
 	appConfig, err := config.GetApplicationConfig(applicationConfigName)
 	if err != nil {
+		logging.Ctx(ctx).Warn(err.Error())
 		return nil, err
 	}
-	requestDto := TokenRequestDto{
-		GrantType:    "authorization_code",
-		ClientId:     appConfig.ClientId,
-		ClientSecret: appConfig.ClientSecret,
-		// RedirectUri: config.RedirectUri(applicationConfig),
-		Code:         authorizationCode,
-		CodeVerifier: pkceVerifier,
-	}
-	requestBody, err := downstreamcall.RenderJson(requestDto)
-	if err != nil {
-		return nil, err
-	}
+
+	requestBody := TokenRequestBody(appConfig, authorizationCode, pkceVerifier)
 
 	tokenEndpoint := config.TokenEndpoint()
 
-	responseBody, httpstatus, err := downstreamcall.HystrixPerformPOST(ctx, HystrixCommandName, i.netClient, tokenEndpoint, requestBody)
+	// TODO: fix hystrix
+	// responseBody, httpstatus, err := downstreamcall.HystrixPerformPOST(ctx, HystrixCommandName, i.netClient, tokenEndpoint, requestBody)
+	responseBody, httpstatus, err := downstreamcall.PerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
 
 	if err != nil || httpstatus != http.StatusOK {
 		if err == nil {
@@ -81,7 +77,7 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 		errorResponseDto := &ErrorDto{}
 		err2 := downstreamcall.ParseJson(responseBody, errorResponseDto)
 		if err2 == nil {
-			logging.Ctx(ctx).Error(fmt.Sprintf("error requesting token from identity provider: error from response is %s, local error is %s", errorResponseDto.Message, err.Error()))
+			logging.Ctx(ctx).Error(fmt.Sprintf("error requesting token from identity provider: error from response is %s:%s, local error is %s", errorResponseDto.ErrorCode, errorResponseDto.ErrorDescription, err.Error()))
 		} else {
 			logging.Ctx(ctx).Error(fmt.Sprintf("error requesting token from identity provider with no structured response available: local error is %s", err.Error()))
 		}

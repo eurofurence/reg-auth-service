@@ -13,15 +13,9 @@
         "method": "POST",
         "path": "/token",
         "headers": {
-          "Content-Type": "application/json"
+          "Content-Type": "application/x-www-form-urlencoded"
         },
-        "body": {
-          "grant_type": "authorization_code",
-          "client_id": "democlient",
-          "client_secret": "democlientsecret",
-          "code": "PzL34r_rsNOR7pvdDVbGQRdETOSSU3Tya6Z6AbE0FHFY4AtC",
-          "code_verifier": "pCAqaUVKzzeSRyp5L_ydTk38E-4PwSzJ459Xq65rrVe809vd"
-        }
+        "body": "client_id=democlient&client_secret=democlientsecret&code=PzL34r_rsNOR7pvdDVbGQRdETOSSU3Tya6Z6AbE0FHFY4AtC&code_verifier=pCAqaUVKzzeSRyp5L_ydTk38E-4PwSzJ459Xq65rrVe809vd&grant_type=authorization_code&redirect_uri=https%3A%2F%2Fexample.com%2Fapp%2F"
       },
       "response": {
         "status": 200,
@@ -29,11 +23,11 @@
           "Content-Type": "application/json"
         },
         "body": {
-          "token_type": "Bearer",
+          "access_token": "XYZ",
           "expires_in": 86400,
-          "access_token": "Qs9QaRHGEiSC8FwerVUSijduguq0ZlqMrOiX6Tbya7CMpyCkrQ7TK7ol9WVMis6Ul_6Nm5XV",
+          "id_token": "abc",
           "scope": "example",
-          "refresh_token": "EXXVAtYSjg2ZX1q7u6wc8lXH"
+          "token_type": "Bearer"
         }
       }
     }
