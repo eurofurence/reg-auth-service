@@ -10,6 +10,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/internal/repository/database"
 	"github.com/eurofurence/reg-auth-service/internal/entity"
 	"github.com/eurofurence/reg-auth-service/web"
+	"github.com/eurofurence/reg-auth-service/web/controller/dropoffctl"
 )
 
 // placing these here because they are package global
@@ -36,6 +37,8 @@ func tstSetup(configFilePath string) {
 	}
 
 	database.GetRepository().AddAuthRequest(context.TODO(), tstAuthRequest)
+
+	dropoffctl.IDPClient = &mockIDPClient{}
 }
 
 func tstSetupConfig(configFilePath string) {

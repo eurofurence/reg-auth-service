@@ -8,11 +8,18 @@ import (
 	"github.com/eurofurence/reg-auth-service/internal/entity"
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database"
+	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
+	"github.com/eurofurence/reg-auth-service/internal/repository/idp/idpclient"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/go-chi/chi"
 )
 
+var IDPClient idp.IdentityProviderClient
+
 func Create(server chi.Router) {
+	if IDPClient == nil {
+		IDPClient = idpclient.New()
+	}
 	server.Get("/v1/dropoff", dropOffHandler)
 }
 
@@ -49,7 +56,7 @@ func dropOffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessCode, err := fetchAccessCode(ctx, *authRequest, applicationConfig)
+	accessCode, err := fetchAccessCode(ctx, authCode, *authRequest, applicationConfig)
 	if err != nil {
 		dropOffErrorHandler(ctx, w, http.StatusInternalServerError, "couldn't fetch access code: " + err.Error())
 		return
@@ -67,8 +74,12 @@ func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, status int,
 	w.WriteHeader(status)
 }
 
-func fetchAccessCode(ctx context.Context, ar entity.AuthRequest, ac config.ApplicationConfig) (string, error) {
-	return "dummy_mock_value", nil
+func fetchAccessCode(ctx context.Context, authCode string, ar entity.AuthRequest, ac config.ApplicationConfig) (string, error) {
+	response, err:= IDPClient.TokenWithAuthenticationCodeAndPKCE(ctx, ar.Application, authCode, ar.PkceCodeVerifier)
+	if err != nil  {
+		return "", err
+	}
+	return response.AccessToken, nil
 }
 
 func setCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, accessCode string, authRequest entity.AuthRequest, applicationConfig config.ApplicationConfig) error {
