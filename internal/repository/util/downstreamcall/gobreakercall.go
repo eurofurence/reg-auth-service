@@ -40,7 +40,7 @@ func ConfigureGobreakerCommand(commandName string) {
 
 // GobreakerPerformPOST performs a http POST, returning the response body and status and passing on the request id if present in the context.
 //
-// The request is wrapped with a circuit breaker and timeout.
+// The request is wrapped with a circuit breaker. You are expected to configure a timeout on the httpClient.
 //
 // Note: you must make at least one call to ConfigureGobreakerCommand() before calling this.
 func GobreakerPerformPOST(ctx context.Context, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
@@ -49,7 +49,7 @@ func GobreakerPerformPOST(ctx context.Context, httpClient *http.Client, url stri
 
 // GobreakerPerformPUT performs a http PUT, returning the response body and status and passing on the request id if present in the context.
 //
-// The request is wrapped with a circuit breaker and timeout.
+// The request is wrapped with a circuit breaker. You are expected to configure a timeout on the httpClient.
 //
 // Note: you must make at least one call to ConfigureGobreakerCommand() before calling this.
 func GobreakerPerformPUT(ctx context.Context, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
@@ -58,7 +58,7 @@ func GobreakerPerformPUT(ctx context.Context, httpClient *http.Client, url strin
 
 // GobreakerPerformGET performs a http GET, returning the response body and status and passing on the request id if present in the context.
 //
-// The request is wrapped with a circuit breaker and timeout.
+// The request is wrapped with a circuit breaker. You are expected to configure a timeout on the httpClient.
 //
 // Note: you must make at least one call to ConfigureGobreakerCommand() before calling this.
 func GobreakerPerformGET(ctx context.Context, httpClient *http.Client, url string) (string, int, error) {
