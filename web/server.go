@@ -1,7 +1,9 @@
 package web
 
 import (
+	"github.com/go-chi/chi/middleware"
 	"net/http"
+	"time"
 
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
@@ -18,6 +20,7 @@ func Create() chi.Router {
 	logging.NoCtx().Info("Building routers...")
 	server := chi.NewRouter()
 
+	server.Use(middleware.Timeout(60 * time.Second))
 	server.Use(reqid.RequestIdMiddleware())
 	server.Use(logreqid.LogRequestIdMiddleware())
 	server.Use(corsfilter.CorsHeadersMiddleware())

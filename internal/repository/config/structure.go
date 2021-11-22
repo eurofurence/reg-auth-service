@@ -5,6 +5,7 @@ import "time"
 type conf struct {
 	Server             serverConfig                 `yaml:"server"`
 	Security           securityConfig               `yaml:"security"`
+	DropoffEndpointUrl string                       `yaml:"dropoff_endpoint_url"`
 	IdentityProvider   identityProviderConfig       `yaml:"identity_provider"`
 	ApplicationConfigs map[string]ApplicationConfig `yaml:"application_configs"`
 }
@@ -26,12 +27,16 @@ type identityProviderConfig struct {
 }
 
 type ApplicationConfig struct {
-	DisplayName         string `yaml:"display_name"`
-	Scope               string `yaml:"scope"`
-	ClientId            string `yaml:"client_id"`
-	ClientSecret        string `yaml:"client_secret"`
-	DefaultRedirectUrl  string `yaml:"default_redirect_url"`
-	RedirectUrlPattern  string `yaml:"redirect_url_pattern"`
+	DisplayName       string        `yaml:"display_name"`
+	Scope             string        `yaml:"scope"`
+	ClientId          string        `yaml:"client_id"`
+	ClientSecret      string        `yaml:"client_secret"`
+	DefaultDropoffUrl string        `yaml:"default_dropoff_url"`
+	DropoffUrlPattern string        `yaml:"dropoff_url_pattern"`
+	CookieName        string        `yaml:"cookie_name"`
+	CookieDomain      string        `yaml:"cookie_domain"`
+	CookiePath        string        `yaml:"cookie_path"`
+	CookieExpiry      time.Duration `yaml:"cookie_expiry"`
 }
 
 type validationErrors map[string][]string

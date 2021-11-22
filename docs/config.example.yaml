@@ -2,6 +2,8 @@ server:
   port: 8081
 security:
   disable_cors: false
+# this must match the OAuth2 redirect_url setting on each client
+dropoff_endpoint_url: https://my.own.domain.example.com/v1/dropoff
 identity_provider:
   authorization_endpoint: https://auth.example.com/auth
   token_endpoint: https://auth.example.com/token
@@ -14,5 +16,9 @@ application_configs:
     scope: example
     client_id: IAmNotSoSecret.
     client_secret: IAmVerySecret!
-    default_redirect_url: https://example.com/app/
-    redirect_url_pattern: https://example.com/app/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
+    default_dropoff_url: https://example.com/app/
+    dropoff_url_pattern: https://example.com/app/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
+    cookie_name: JWT
+    cookie_domain: example.com
+    cookie_path: /app
+    cookie_expiry: 6h

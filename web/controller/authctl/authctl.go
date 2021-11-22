@@ -29,67 +29,69 @@ func Create(server chi.Router) {
 /* Handle /auth requests.
  *
  * Required parameters are:
- *  * reg_app_name  - the name of the application that the user wants to be authenticated for
+ *  * app_name  - the name of the application that the user wants to be authenticated for
  *
  * Optional parameters are:
- *  * redirect_url  - where to redirect the user after a successfull authentication flow.
+ *  * dropoff_url  - where to redirect the user after a successfull authentication flow.
  *                    This URL must match the pattern of allowed URLs in the config file.
  *
  * All additional query parameters are appended to the app's redirect_url after a successfull
- * authentication.
+ * authentication. (not yet implemented)
  */
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	query := r.URL.Query()
-	regAppName := query.Get("reg_app_name")
+	regAppName := query.Get("app_name")
 	if regAppName == "" {
-		authErrorHandler(ctx, w, http.StatusBadRequest, "reg_app_name parameter is missing")
+		authErrorHandler(ctx, w, regAppName, "?", "", http.StatusBadRequest, "app_name parameter is missing")
 		return
 	}
 	applicationConfig, err := config.GetApplicationConfig(regAppName)
 	if err != nil {
-		authErrorHandler(ctx, w, http.StatusNotFound, "reg_app_name is unknown")
+		authErrorHandler(ctx, w, regAppName, "?", "", http.StatusNotFound, "app_name is unknown")
 		return
 	}
 
 	// drop off url != redirect url (our 2nd endpoint) -- doesn't match configuration right now
-	dropOffUrl := query.Get("redirect_url")
+	dropOffUrl := query.Get("dropoff_url")
 	if dropOffUrl == "" {
-		dropOffUrl = applicationConfig.DefaultRedirectUrl
+		dropOffUrl = applicationConfig.DefaultDropoffUrl
 	} else {
-		if !validateDropOffURL(ctx, w, applicationConfig.RedirectUrlPattern, dropOffUrl) {
-			authErrorHandler(ctx, w, http.StatusForbidden, "the specified redirect_url is not allowed")
+		if !validateDropOffURL(ctx, w, applicationConfig.DropoffUrlPattern, dropOffUrl) {
+			authErrorHandler(ctx, w, regAppName, dropOffUrl, "", http.StatusForbidden, "the specified redirect_url is not allowed")
 			return
 		}
 	}
 
 	state, err := generateState()
 	if err != nil {
-		authErrorHandler(ctx, w, http.StatusInternalServerError, "state could not be generated")
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "state could not be generated")
 		return
 	}
 	codeVerifier, err := generateCodeVerifier()
 	if err != nil {
-		authErrorHandler(ctx, w, http.StatusInternalServerError, "verifier could not be generated")
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "verifier could not be generated")
 		return
 	}
 	codeChallenge := generateCodeChallenge(codeVerifier)
 
 	err = storeFlowState(ctx, regAppName, state, codeVerifier, dropOffUrl)
 	if err != nil {
-		authErrorHandler(ctx, w, http.StatusInternalServerError, "could not store flow state")
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "could not store flow state")
 		return
 	}
 
 	err = redirectToOpenIDProvider(ctx, w, applicationConfig, state, codeChallenge)
 	if err != nil {
-		authErrorHandler(ctx, w, http.StatusInternalServerError, err.Error())
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, err.Error())
+		return
 	}
+	logging.Ctx(ctx).Info(fmt.Sprintf("OK v1/auth(%s, %s)[%s] -> %d", regAppName, dropOffUrl, state, http.StatusFound))
 }
 
-func authErrorHandler(ctx context.Context, w http.ResponseWriter, status int, msg string) {
-	logging.Ctx(ctx).Error(msg)
+func authErrorHandler(ctx context.Context, w http.ResponseWriter, regAppName string, dropOffUrl string, state string, status int, msg string) {
+	logging.Ctx(ctx).Warn(fmt.Sprintf("FAIL v1/auth(%s, %s)[%s] -> %d: %s", regAppName, dropOffUrl, state, status, msg))
 	// TODO: here we should display some information to the user
 	w.WriteHeader(status)
 }
@@ -177,7 +179,7 @@ func redirectToOpenIDProvider(ctx context.Context, w http.ResponseWriter, applic
 	q.Set("state", state)
 	q.Set("code_challenge", codeChallenge)
 	q.Set("code_challenge_method", codeChallengeMethod)
-	q.Set("redirect_url", config.ServerAddr()+"/send_off") // TODO make configurable
+	q.Set("redirect_url", config.DropoffEndpointUrl())
 	u.RawQuery = q.Encode()
 	w.Header().Set("Location", u.String())
 	w.WriteHeader(http.StatusFound)

@@ -32,7 +32,7 @@ func TestDropOff(t *testing.T) {
 
 	docs.When("when they call the endpoint with valid state and valid authorization_code")
 	test_url := "/v1/dropoff?state="+tstAuthRequest.State+"&"
-	test_url = test_url + "&authorization_code="+tstAuthorizationCode
+	test_url = test_url + "&code="+tstAuthorizationCode
 
 	response := tstPerformGet(test_url)
 	docs.Then("then the user agent is redirected to the drop off URL")
@@ -53,7 +53,7 @@ func TestDropOff(t *testing.T) {
 	cookies := response.Cookies()
 	var ac *http.Cookie = nil
 	for _, cookie := range cookies {
-		if cookie.Name != "AccessCode" {
+		if cookie.Name != "JWT" {
 			continue
 		}
 		ac = cookie

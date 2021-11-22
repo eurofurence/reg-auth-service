@@ -21,6 +21,10 @@ func AuthorizationEndpoint() string {
 	return configuration().IdentityProvider.AuthorizationEndpoint
 }
 
+func DropoffEndpointUrl() string {
+	return configuration().DropoffEndpointUrl
+}
+
 func TokenRequestTimeout() time.Duration {
 	return configuration().IdentityProvider.TokenRequestTimeout
 }

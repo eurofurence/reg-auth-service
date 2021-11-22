@@ -46,7 +46,7 @@ func TokenRequestBody(appConfig config.ApplicationConfig, authorizationCode stri
 	parameters.Set("grant_type", "authorization_code")
 	parameters.Set("client_id", appConfig.ClientId)
 	parameters.Set("client_secret", appConfig.ClientSecret)
-	parameters.Set("redirect_uri", appConfig.DefaultRedirectUrl)
+	parameters.Set("redirect_uri", appConfig.DefaultDropoffUrl)
 	parameters.Set("code", authorizationCode)
 	parameters.Set("code_verifier", pkceVerifier)
 	requestBody := parameters.Encode()
@@ -64,8 +64,8 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 
 	tokenEndpoint := config.TokenEndpoint()
 
-	responseBody, httpstatus, err := downstreamcall.PerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
-	// responseBody, httpstatus, err := downstreamcall.GobreakerPerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
+	// responseBody, httpstatus, err := downstreamcall.PerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
+	responseBody, httpstatus, err := downstreamcall.GobreakerPerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
 
 	if err != nil || httpstatus != http.StatusOK {
 		if err == nil {

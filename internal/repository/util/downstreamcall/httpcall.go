@@ -31,7 +31,7 @@ func performNoBody(ctx context.Context, method string, httpClient *http.Client, 
 }
 
 func performWithBody(ctx context.Context, method string, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
-	req, err := http.NewRequest(method, url, strings.NewReader(requestBody))
+	req, err := http.NewRequestWithContext(ctx, method, url, strings.NewReader(requestBody))
 	if err != nil {
 		return "", 0, err
 	}

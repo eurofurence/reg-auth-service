@@ -38,8 +38,8 @@ func TestLogin(t *testing.T) {
 	defer tstShutdown()
 
 	docs.When("when they start an auth flow with valid reg_app_name and valid redirect_url")
-	test_url := "/v1/auth?reg_app_name=example-service&"
-	test_url = test_url + "&redirect_url=" + url.QueryEscape("https://example.com/app/?foo=abc")
+	test_url := "/v1/auth?app_name=example-service&"
+	test_url = test_url + "&dropoff_url=" + url.QueryEscape("https://example.com/app/?foo=abc")
 	response := tstPerformGet(test_url)
 
 	docs.Then("then the user agent is redirected to the OpenID Connect auth URL")
@@ -63,6 +63,6 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, "code", values.Get("response_type"), "unexpected scope")
 	// The 'redirect_url' parameter must contain the URL of the /redirect endpoint of this service
 	// Note: this is *NOT* the redirect_url that we might receive as an optional input parameter.
-	require.Equal(t, ":8081/send_off", values.Get("redirect_url"), "unexpected redirect_url")
+	require.Equal(t, "http://localhost:8081/v1/dropoff", values.Get("redirect_url"), "unexpected redirect_url")
 }
 
