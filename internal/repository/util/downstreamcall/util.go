@@ -2,6 +2,11 @@ package downstreamcall
 
 import "encoding/json"
 
+type responseInfo struct {
+	body   string
+	status int
+}
+
 // helper functions for dealing with json
 
 func RenderJson(dto interface{}) (string, error) {

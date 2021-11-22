@@ -21,8 +21,8 @@ func AuthorizationEndpoint() string {
 	return configuration().IdentityProvider.AuthorizationEndpoint
 }
 
-func CircuitBreakerTimeout() time.Duration {
-	return configuration().IdentityProvider.CircuitBreakerTimeout
+func TokenRequestTimeout() time.Duration {
+	return configuration().IdentityProvider.TokenRequestTimeout
 }
 
 func AuthRequestTimeout() time.Duration {

@@ -21,7 +21,7 @@ type identityProviderConfig struct {
 	AuthorizationEndpoint string        `yaml:"authorization_endpoint"`
 	TokenEndpoint         string        `yaml:"token_endpoint"`
 	EndSessionEndpoint    string        `yaml:"end_session_endpoint"`
-	CircuitBreakerTimeout time.Duration `yaml:"circuit_breaker_timeout"`
+	TokenRequestTimeout   time.Duration `yaml:"token_request_timeout"`
 	AuthRequestTimeout    time.Duration `yaml:"auth_request_timeout"`
 }
 

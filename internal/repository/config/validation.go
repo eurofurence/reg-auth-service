@@ -37,8 +37,8 @@ func validateIdentityProviderConfiguration(errs validationErrors, ipc identityPr
 	if ipc.EndSessionEndpoint == "" {
 		addError(errs, "identity_provider.end_session_endpoint", ipc.EndSessionEndpoint, "cannot not be empty")
 	}
-	if ipc.CircuitBreakerTimeout < 0 {
-		addError(errs, "identity_provider.circuit_breaker_timeout", ipc.CircuitBreakerTimeout, "cannot be negative")
+	if ipc.TokenRequestTimeout < 0 {
+		addError(errs, "identity_provider.token_request_timeout", ipc.TokenRequestTimeout, "cannot be negative")
 	}
 	if ipc.AuthRequestTimeout < 0 {
 		addError(errs, "identity_provider.auth_request_timeout", ipc.AuthRequestTimeout, "cannot be negative")
