@@ -48,7 +48,7 @@ func TestConsumer(t *testing.T) {
 		// initialize test configuration so we will talk to pact
 		_loadContractTestConfig(pact.Server.Port)
 
-		ctx := context.TODO()
+		ctx := context.Background()
 
 		client := idpclient.New()
 		actualResponse, err := client.TokenWithAuthenticationCodeAndPKCE(ctx, "example-service", tstAuthorizationCode, tstPkceVerifier)

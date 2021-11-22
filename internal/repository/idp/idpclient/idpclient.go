@@ -64,7 +64,8 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 
 	tokenEndpoint := config.TokenEndpoint()
 
-	responseBody, httpstatus, err := downstreamcall.GobreakerPerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
+	responseBody, httpstatus, err := downstreamcall.PerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
+	// responseBody, httpstatus, err := downstreamcall.GobreakerPerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
 
 	if err != nil || httpstatus != http.StatusOK {
 		if err == nil {

@@ -53,6 +53,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// drop off url != redirect url (our 2nd endpoint) -- doesn't match configuration right now
 	dropOffUrl := query.Get("redirect_url")
 	if dropOffUrl == "" {
 		dropOffUrl = applicationConfig.DefaultRedirectUrl
@@ -108,26 +109,27 @@ func validateDropOffURL(ctx context.Context, w http.ResponseWriter, exp string, 
  *    https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.5
  */
 func generateState() (string, error) {
+	const letters string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 40
 	state := make([]byte, length)
 	for i := 0; i < length; i++ {
-		num, err := rand.Int(rand.Reader, big.NewInt(int64(0x7e-0x20)))
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
 		if err != nil {
 			return "", err
 		}
-		state[i] = byte(num.Int64())
+		state[i] = letters[num.Int64()]
 	}
 	return string(state), nil
 }
 
-/* according to RFC 7636, the "code verifier" is defined as between 43 and 12
+/* according to RFC 7636, the "code verifier" is defined as between 43 and 128
  * characters within the range of US ASCII a-zA-Z0-9 and any of "-", ".", "_" or "~".
  * See here:
  *
  *    https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
  */
 func generateCodeVerifier() (string, error) {
-	const letters string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~"
+	const letters string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 128
 	verifier := make([]byte, length)
 	for i := 0; i < length; i++ {
@@ -150,7 +152,7 @@ func generateCodeChallenge(verifier string) string {
 	h := sha256.New()
 	h.Write([]byte(verifier))
 	hash := h.Sum(nil)
-	return base64.StdEncoding.EncodeToString(hash)
+	return base64.RawURLEncoding.EncodeToString(hash)
 }
 
 func storeFlowState(ctx context.Context, regAppName string, state string, codeVerifier string, dropOffUrl string) error {
@@ -175,7 +177,7 @@ func redirectToOpenIDProvider(ctx context.Context, w http.ResponseWriter, applic
 	q.Set("state", state)
 	q.Set("code_challenge", codeChallenge)
 	q.Set("code_challenge_method", codeChallengeMethod)
-	q.Set("redirect_url", config.ServerAddr()+"/send_off")
+	q.Set("redirect_url", config.ServerAddr()+"/send_off") // TODO make configurable
 	u.RawQuery = q.Encode()
 	w.Header().Set("Location", u.String())
 	w.WriteHeader(http.StatusFound)
