@@ -75,7 +75,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	codeChallenge := generateCodeChallenge(codeVerifier)
 
-	err = storeFlowState(ctx, state, codeVerifier, dropOffUrl)
+	err = storeFlowState(ctx, regAppName, state, codeVerifier, dropOffUrl)
 	if err != nil {
 		authErrorHandler(ctx, w, http.StatusInternalServerError, "could not store flow state")
 		return
@@ -153,8 +153,9 @@ func generateCodeChallenge(verifier string) string {
 	return base64.StdEncoding.EncodeToString(hash)
 }
 
-func storeFlowState(ctx context.Context, state string, codeVerifier string, dropOffUrl string) error {
+func storeFlowState(ctx context.Context, regAppName string, state string, codeVerifier string, dropOffUrl string) error {
 	return database.GetRepository().AddAuthRequest(ctx, &entity.AuthRequest{
+		Application:      regAppName,
 		State:            state,
 		PkceCodeVerifier: codeVerifier,
 		DropOffUrl:       dropOffUrl,

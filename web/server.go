@@ -6,6 +6,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/eurofurence/reg-auth-service/web/controller/authctl"
+	"github.com/eurofurence/reg-auth-service/web/controller/dropoffctl"
 	"github.com/eurofurence/reg-auth-service/web/controller/healthctl"
 	"github.com/eurofurence/reg-auth-service/web/filter/corsfilter"
 	"github.com/eurofurence/reg-auth-service/web/filter/logreqid"
@@ -24,6 +25,7 @@ func Create() chi.Router {
 	healthctl.Create(server)
 	// add your controllers here
 	authctl.Create(server)
+	dropoffctl.Create(server)
 	return server
 }
 
