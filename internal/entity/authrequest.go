@@ -5,6 +5,7 @@ import (
 )
 
 type AuthRequest struct {
+	Application      string
 	State            string
 	ExpiresAt        time.Time
 	DropOffUrl       string

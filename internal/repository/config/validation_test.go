@@ -115,11 +115,15 @@ func TestValidateIdentityProviderConfiguration_negativeAuthRequestTimeout(t *tes
 
 func createValidApplicationConfig() ApplicationConfig {
 	return ApplicationConfig{
-		DisplayName:         "Test Application",
-		Scope:               "test-scope",
-		ClientId:            "test-client-id",
-		ClientSecret:        "test-client-secret",
-		DefaultRedirectUrl:  "https://target.example.com/app",
+		DisplayName:       "Test Application",
+		Scope:             "test-scope",
+		ClientId:          "test-client-id",
+		ClientSecret:      "test-client-secret",
+		DefaultDropoffUrl: "https://target.example.com/app",
+		CookieName:        "ACookie",
+		CookieDomain:      "example.com",
+		CookiePath:        "/",
+		CookieExpiry:      4 * time.Hour,
 	}
 }
 
@@ -192,44 +196,99 @@ func TestValidateApplicationConfigs_emptyClientSecret(t *testing.T) {
 	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.client_secret"])
 }
 
-func TestValidateApplicationConfigs_emptyDefaultRedirectUrl(t *testing.T) {
+func TestValidateApplicationConfigs_emptyDefaultDropoffUrl(t *testing.T) {
 	docs.Description("validation should catch a missing default redirect URL in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
-	config.DefaultRedirectUrl = ""
+	config.DefaultDropoffUrl = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 1, len(errs))
 	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.default_redirect_url"])
 }
 
-func TestValidateApplicationConfigs_emptyRedirectUrlPattern(t *testing.T) {
+func TestValidateApplicationConfigs_emptyDropoffUrlPattern(t *testing.T) {
 	docs.Description("validation should accept empty redirect URL pattern in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
-	config.RedirectUrlPattern = ""
+	config.DropoffUrlPattern = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 0, len(errs))
 }
 
-func TestValidateApplicationConfigs_validRedirectUrlPattern(t *testing.T) {
+func TestValidateApplicationConfigs_validDropoffUrlPattern(t *testing.T) {
 	docs.Description("validation should accept valid redirect URL pattern in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
-	config.RedirectUrlPattern = "https://reg.eurofurence.example.com/room/(\\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?"
+	config.DropoffUrlPattern = "https://reg.eurofurence.example.com/room/(\\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?"
 	configs := map[string]ApplicationConfig{"test-application-config": config}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 0, len(errs))
 }
 
-func TestValidateApplicationConfigs_invalidRedirectUrlPattern(t *testing.T) {
+func TestValidateApplicationConfigs_invalidDropoffUrlPattern(t *testing.T) {
 	docs.Description("validation should catch an invalid redirect URL pattern in application config")
 	errs := validationErrors{}
 	config := createValidApplicationConfig()
-	config.RedirectUrlPattern = "(iammissingaroundbracketattheendohno"
+	config.DropoffUrlPattern = "(iammissingaroundbracketattheendohno"
 	configs := map[string]ApplicationConfig{"test-application-config": config}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 1, len(errs))
 	require.Equal(t, []string{"value '(iammissingaroundbracketattheendohno' must be a valid regular expression, but encountered compile error: error parsing regexp: missing closing ): `(iammissingaroundbracketattheendohno`)"}, errs["application_configs.test-application-config.redirect_url_pattern"])
+}
+
+func TestValidateApplicationConfigs_emptyCookieName(t *testing.T) {
+	docs.Description("validation should catch a missing cookie name in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.CookieName = ""
+	configs := map[string]ApplicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.cookie_name"])
+}
+
+func TestValidateApplicationConfigs_emptyCookieDomain(t *testing.T) {
+	docs.Description("validation should catch a missing cookie domain in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.CookieDomain = ""
+	configs := map[string]ApplicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '' cannot not be empty"}, errs["application_configs.test-application-config.cookie_domain"])
+}
+
+func TestValidateApplicationConfigs_emptyCookiePath(t *testing.T) {
+	docs.Description("validation should catch a missing cookie path in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.CookiePath = ""
+	configs := map[string]ApplicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '' cannot not be empty, use '/' for all paths"}, errs["application_configs.test-application-config.cookie_path"])
+}
+
+func TestValidateApplicationConfigs_negativeCookieExpiry(t *testing.T) {
+	docs.Description("validation should catch a negative cookie expiry in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.CookieExpiry = -1 * time.Hour
+	configs := map[string]ApplicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '-1h0m0s' must be positive, try '1h' or '5m'"}, errs["application_configs.test-application-config.cookie_expiry"])
+}
+
+func TestValidateApplicationConfigs_zeroCookieExpiry(t *testing.T) {
+	docs.Description("validation should catch a zero cookie expiry in application config")
+	errs := validationErrors{}
+	config := createValidApplicationConfig()
+	config.CookieExpiry = 0
+	configs := map[string]ApplicationConfig{"test-application-config": config}
+	validateApplicationConfigurations(errs, configs)
+	require.Equal(t, 1, len(errs))
+	require.Equal(t, []string{"value '0s' must be positive, try '1h' or '5m'"}, errs["application_configs.test-application-config.cookie_expiry"])
 }

@@ -2,6 +2,7 @@ server:
   port: 8081
 security:
   disable_cors: false
+dropoff_endpoint_url: http://localhost:8081/v1/dropoff
 identity_provider:
   authorization_endpoint: http://localhost:{{ .pactPort }}/auth
   token_endpoint: http://localhost:{{ .pactPort }}/token
@@ -14,5 +15,9 @@ application_configs:
     scope: example
     client_id: democlient
     client_secret: democlientsecret
-    default_redirect_url: https://example.com/app/
-    redirect_url_pattern: https://example.com/app/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
+    default_dropoff_url: https://example.com/app/
+    dropoff_url_pattern: https://example.com/app/(\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?
+    cookie_name: JWT
+    cookie_domain: example.com
+    cookie_path: /app
+    cookie_expiry: 6h

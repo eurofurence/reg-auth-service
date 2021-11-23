@@ -11,6 +11,12 @@ func addError(errs validationErrors, key string, value interface{}, message stri
 	errs[key] = append(errs[key], fmt.Sprintf("value '%v' %s", value, message))
 }
 
+func validateDropoffEndpointUrl(errs validationErrors, value string) {
+	if value == "" {
+		addError(errs, "dropoff_endpoint_url", value, "cannot not be empty")
+	}
+}
+
 func validateServerConfiguration(errs validationErrors, sc serverConfig) {
 	if sc.Port == "" {
 		addError(errs, "server.port", sc.Port, "cannot be empty")
@@ -62,13 +68,25 @@ func validateApplicationConfigurations(errs validationErrors, acs map[string]App
 		if ac.ClientSecret == "" {
 			addError(errs, fmt.Sprintf("application_configs.%s.client_secret", name), ac.ClientSecret, "cannot not be empty")
 		}
-		if ac.DefaultRedirectUrl == "" {
-			addError(errs, fmt.Sprintf("application_configs.%s.default_redirect_url", name), ac.DefaultRedirectUrl, "cannot not be empty")
+		if ac.DefaultDropoffUrl == "" {
+			addError(errs, fmt.Sprintf("application_configs.%s.default_redirect_url", name), ac.DefaultDropoffUrl, "cannot not be empty")
 		}
-		if ac.RedirectUrlPattern != "" {
-			if _, regexpError := regexp.Compile(strings.ReplaceAll(ac.RedirectUrlPattern, "/", "\\/")); regexpError != nil {
-				addError(errs, fmt.Sprintf("application_configs.%s.redirect_url_pattern", name), ac.RedirectUrlPattern, fmt.Sprintf("must be a valid regular expression, but encountered compile error: %s)", regexpError))
+		if ac.DropoffUrlPattern != "" {
+			if _, regexpError := regexp.Compile(strings.ReplaceAll(ac.DropoffUrlPattern, "/", "\\/")); regexpError != nil {
+				addError(errs, fmt.Sprintf("application_configs.%s.redirect_url_pattern", name), ac.DropoffUrlPattern, fmt.Sprintf("must be a valid regular expression, but encountered compile error: %s)", regexpError))
 			}
+		}
+		if ac.CookieName == "" {
+			addError(errs, fmt.Sprintf("application_configs.%s.cookie_name", name), ac.CookieName, "cannot not be empty")
+		}
+		if ac.CookieDomain == "" {
+			addError(errs, fmt.Sprintf("application_configs.%s.cookie_domain", name), ac.CookieDomain, "cannot not be empty")
+		}
+		if ac.CookiePath == "" {
+			addError(errs, fmt.Sprintf("application_configs.%s.cookie_path", name), ac.CookiePath, "cannot not be empty, use '/' for all paths")
+		}
+		if ac.CookieExpiry <= 0 {
+			addError(errs, fmt.Sprintf("application_configs.%s.cookie_expiry", name), ac.CookieExpiry, "must be positive, try '1h' or '5m'")
 		}
 	}
 }
