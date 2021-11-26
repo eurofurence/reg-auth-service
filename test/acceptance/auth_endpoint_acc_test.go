@@ -118,7 +118,7 @@ func TestAuth_Failure_AppNameMissing(t *testing.T) {
 	testUrl := "/v1/auth"
 	response := tstPerformGet(testUrl)
 
-	docs.Then("then the correct error is returned")
+	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusBadRequest, response.StatusCode, "unexpected http response status, must be HTTP 400")
 	responseBody := tstResponseBodyString(&response)
 	require.Contains(t, responseBody, "<b>error:</b> invalid parameters")
@@ -133,7 +133,7 @@ func TestAuth_Failure_UnknownAppName(t *testing.T) {
 	testUrl := "/v1/auth?app_name=unknown-service"
 	response := tstPerformGet(testUrl)
 
-	docs.Then("then the correct error is returned")
+	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusNotFound, response.StatusCode, "unexpected http response status, must be HTTP 404")
 	responseBody := tstResponseBodyString(&response)
 	require.Contains(t, responseBody, "<b>error:</b> invalid parameters")
@@ -149,7 +149,7 @@ func TestAuth_Failure_InvalidDropoffUrl(t *testing.T) {
 	testUrl = testUrl + "&dropoff_url=" + url.QueryEscape("https://example.com/nomatch")
 	response := tstPerformGet(testUrl)
 
-	docs.Then("then the correct error is returned")
+	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusForbidden, response.StatusCode, "unexpected http response status, must be HTTP 403")
 	responseBody := tstResponseBodyString(&response)
 	require.Contains(t, responseBody, "<b>error:</b> invalid parameters")
