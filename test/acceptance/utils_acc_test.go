@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -23,3 +24,16 @@ func tstPerformGet(relativeUrlWithLeadingSlash string) http.Response {
 	return *response
 }
 
+func tstResponseBodyString(response *http.Response) string {
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "error"
+	}
+
+	err = response.Body.Close()
+	if err != nil {
+		return "error"
+	}
+
+	return string(body)
+}

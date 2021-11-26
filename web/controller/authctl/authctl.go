@@ -16,6 +16,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
+	"github.com/eurofurence/reg-auth-service/web/controller"
 	"github.com/go-chi/chi"
 )
 
@@ -44,12 +45,12 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	regAppName := query.Get("app_name")
 	if regAppName == "" {
-		authErrorHandler(ctx, w, regAppName, "?", "", http.StatusBadRequest, "app_name parameter is missing")
+		authErrorHandler(ctx, w, regAppName, "?", "", http.StatusBadRequest, "app_name parameter is missing", "invalid parameters")
 		return
 	}
 	applicationConfig, err := config.GetApplicationConfig(regAppName)
 	if err != nil {
-		authErrorHandler(ctx, w, regAppName, "?", "", http.StatusNotFound, "app_name is unknown")
+		authErrorHandler(ctx, w, regAppName, "?", "", http.StatusNotFound, "app_name is unknown", "invalid parameters")
 		return
 	}
 
@@ -59,41 +60,41 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		dropOffUrl = applicationConfig.DefaultDropoffUrl
 	} else {
 		if !validateDropOffURL(ctx, w, applicationConfig.DropoffUrlPattern, dropOffUrl) {
-			authErrorHandler(ctx, w, regAppName, dropOffUrl, "", http.StatusForbidden, "the specified redirect_url is not allowed")
+			authErrorHandler(ctx, w, regAppName, dropOffUrl, "", http.StatusForbidden, "the specified dropoff_url is not allowed", "invalid parameters")
 			return
 		}
 	}
 
 	state, err := generateState()
 	if err != nil {
-		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "state could not be generated")
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "state could not be generated", "internal error")
 		return
 	}
 	codeVerifier, err := generateCodeVerifier()
 	if err != nil {
-		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "verifier could not be generated")
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "verifier could not be generated", "internal error")
 		return
 	}
 	codeChallenge := generateCodeChallenge(codeVerifier)
 
 	err = storeFlowState(ctx, regAppName, state, codeVerifier, dropOffUrl)
 	if err != nil {
-		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "could not store flow state")
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, "could not store flow state", "internal error")
 		return
 	}
 
 	err = redirectToOpenIDProvider(ctx, w, applicationConfig, state, codeChallenge)
 	if err != nil {
-		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, err.Error())
+		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, err.Error(), "internal error")
 		return
 	}
-	logging.Ctx(ctx).Info(fmt.Sprintf("OK v1/auth(%s, %s)[%s] -> %d", regAppName, dropOffUrl, state, http.StatusFound))
+	logging.Ctx(ctx).Info(fmt.Sprintf("OK v1/auth(%s,%s)[%s] -> %d", regAppName, dropOffUrl, state, http.StatusFound))
 }
 
-func authErrorHandler(ctx context.Context, w http.ResponseWriter, regAppName string, dropOffUrl string, state string, status int, msg string) {
-	logging.Ctx(ctx).Warn(fmt.Sprintf("FAIL v1/auth(%s, %s)[%s] -> %d: %s", regAppName, dropOffUrl, state, status, msg))
-	// TODO: here we should display some information to the user
+func authErrorHandler(ctx context.Context, w http.ResponseWriter, regAppName string, dropOffUrl string, state string, status int, logMsg string, publicMsg string) {
+	logging.Ctx(ctx).Warn(fmt.Sprintf("FAIL v1/auth(%s,%s)[%s] -> %d: %s", regAppName, dropOffUrl, state, status, logMsg))
 	w.WriteHeader(status)
+	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
 }
 
 func validateDropOffURL(ctx context.Context, w http.ResponseWriter, exp string, dropOffUrl string) bool {
