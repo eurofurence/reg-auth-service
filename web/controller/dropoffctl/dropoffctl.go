@@ -12,6 +12,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp/idpclient"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
+	"github.com/eurofurence/reg-auth-service/web/controller"
 	"github.com/go-chi/chi"
 )
 
@@ -36,50 +37,50 @@ func dropOffHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	state := query.Get("state")
 	if state == "" {
-		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "state parameter is missing")
+		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "state parameter is missing", "invalid parameters")
 		return
 	}
 	authCode := query.Get("code")
 	if authCode == "" {
-		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "authorization_code parameter is missing")
+		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "authorization_code parameter is missing", "invalid parameters")
 		return
 	}
 
 	authRequest, err := database.GetRepository().GetAuthRequestByState(ctx, state)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusNotFound, "couldn't load auth request: " + err.Error())
+		dropOffErrorHandler(ctx, w, state, http.StatusNotFound, "couldn't load auth request: "+err.Error(), "auth request not found or timed out")
 		return
 	}
 
 	applicationConfig, err := config.GetApplicationConfig(authRequest.Application)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, "couldn't load application config: " + err.Error())
+		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, "couldn't load application config: "+err.Error(), "internal error")
 		return
 	}
 
 	accessCode, err := fetchAccessCode(ctx, authCode, *authRequest, applicationConfig)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, "couldn't fetch access code: " + err.Error())
+		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, "couldn't fetch access code: "+err.Error(), "internal error")
 		return
 	}
 
 	err = setCookieAndRedirectToDropOffUrl(ctx, w, accessCode, *authRequest, applicationConfig)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, err.Error())
+		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, err.Error(), "internal error")
 		return
 	}
 	logging.Ctx(ctx).Info(fmt.Sprintf("OK v1/dropoff(%s)-> %d", state, http.StatusFound))
 }
 
-func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, state string, status int, msg string) {
-	logging.Ctx(ctx).Warn(fmt.Sprintf("FAIL v1/dropoff(%s) -> %d: %s", state, status, msg))
-	// TODO: here we should display some information to the user
+func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, state string, status int, logMsg string, publicMsg string) {
+	logging.Ctx(ctx).Warn(fmt.Sprintf("FAIL v1/dropoff(%s) -> %d: %s", state, status, logMsg))
 	w.WriteHeader(status)
+	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
 }
 
 func fetchAccessCode(ctx context.Context, authCode string, ar entity.AuthRequest, ac config.ApplicationConfig) (string, error) {
-	response, err:= IDPClient.TokenWithAuthenticationCodeAndPKCE(ctx, ar.Application, authCode, ar.PkceCodeVerifier)
-	if err != nil  {
+	response, err := IDPClient.TokenWithAuthenticationCodeAndPKCE(ctx, ar.Application, authCode, ar.PkceCodeVerifier)
+	if err != nil {
 		return "", err
 	}
 	return response.AccessToken, nil
