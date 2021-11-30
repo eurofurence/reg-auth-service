@@ -13,5 +13,5 @@ type TokenResponseDto struct {
 }
 
 type IdentityProviderClient interface {
-	TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*TokenResponseDto, error)
+	TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*TokenResponseDto, int, error)
 }

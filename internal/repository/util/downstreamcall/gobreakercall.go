@@ -40,40 +40,43 @@ func ConfigureGobreakerCommand(commandName string) {
 
 // GobreakerPerformPOST performs a http POST, returning the response body and status and passing on the request id if present in the context.
 //
-// The request is wrapped with a circuit breaker. You are expected to configure a timeout on the httpClient.
+// The request is wrapped with a circuit breaker.
 //
 // Note: you must make at least one call to ConfigureGobreakerCommand() before calling this.
-func GobreakerPerformPOST(ctx context.Context, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
-	return gobreakerPerformWithBody(ctx, http.MethodPost, httpClient, url, requestBody, contentType)
+func GobreakerPerformPOST(ctx context.Context, httpClient *http.Client, timeout time.Duration, url string, requestBody string, contentType string) (string, int, error) {
+	return gobreakerPerformWithBody(ctx, http.MethodPost, httpClient, timeout, url, requestBody, contentType)
 }
 
 // GobreakerPerformPUT performs a http PUT, returning the response body and status and passing on the request id if present in the context.
 //
-// The request is wrapped with a circuit breaker. You are expected to configure a timeout on the httpClient.
+// The request is wrapped with a circuit breaker.
 //
 // Note: you must make at least one call to ConfigureGobreakerCommand() before calling this.
-func GobreakerPerformPUT(ctx context.Context, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
-	return gobreakerPerformWithBody(ctx, http.MethodPut, httpClient, url, requestBody, contentType)
+func GobreakerPerformPUT(ctx context.Context, httpClient *http.Client, timeout time.Duration, url string, requestBody string, contentType string) (string, int, error) {
+	return gobreakerPerformWithBody(ctx, http.MethodPut, httpClient, timeout, url, requestBody, contentType)
 }
 
 // GobreakerPerformGET performs a http GET, returning the response body and status and passing on the request id if present in the context.
 //
-// The request is wrapped with a circuit breaker. You are expected to configure a timeout on the httpClient.
+// The request is wrapped with a circuit breaker.
 //
 // Note: you must make at least one call to ConfigureGobreakerCommand() before calling this.
-func GobreakerPerformGET(ctx context.Context, httpClient *http.Client, url string) (string, int, error) {
-	return gobreakerPerformNoBody(ctx, http.MethodGet, httpClient, url)
+func GobreakerPerformGET(ctx context.Context, httpClient *http.Client, timeout time.Duration, url string) (string, int, error) {
+	return gobreakerPerformNoBody(ctx, http.MethodGet, httpClient, timeout, url)
 }
 
 // --- internal helper functions ---
 
-func gobreakerPerformNoBody(ctx context.Context, method string, httpClient *http.Client, url string) (string, int, error) {
-	return gobreakerPerformWithBody(ctx, method, httpClient, url, "", "")
+func gobreakerPerformNoBody(ctx context.Context, method string, httpClient *http.Client, timeout time.Duration, url string) (string, int, error) {
+	return gobreakerPerformWithBody(ctx, method, httpClient, timeout, url, "", "")
 }
 
-func gobreakerPerformWithBody(ctx context.Context, method string, httpClient *http.Client, url string, requestBody string, contentType string) (string, int, error) {
+func gobreakerPerformWithBody(ctx context.Context, method string, httpClient *http.Client, timeout time.Duration, url string, requestBody string, contentType string) (string, int, error) {
 	responseUntyped, err := cb.Execute(func() (interface{}, error) {
-		responseBody, httpStatus, innerErr := performWithBody(ctx, method, httpClient, url, requestBody, contentType)
+		childCtx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+
+		responseBody, httpStatus, innerErr := performWithBody(childCtx, method, httpClient, url, requestBody, contentType)
 
 		// if we return an error at this point, it will count towards opening the circuit breaker
 		if innerErr != nil {
@@ -91,12 +94,13 @@ func gobreakerPerformWithBody(ctx context.Context, method string, httpClient *ht
 			status: httpStatus,
 		}, nil
 	})
+	// TODO http.StatusGatewayTimeout (504) would be better match for timeout, but how to distinguish?
 	if err != nil {
-		return "", 500, err
+		return "", http.StatusBadGateway, err
 	}
 	response, ok := responseUntyped.(responseInfo)
 	if !ok {
-		return "", 500, fmt.Errorf("got no response data structure despite no error")
+		return "", http.StatusBadGateway, fmt.Errorf("got no response data structure despite no error")
 	}
 	return response.body, response.status, err
 }
