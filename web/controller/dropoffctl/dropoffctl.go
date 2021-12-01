@@ -83,7 +83,7 @@ func fetchToken(ctx context.Context, authCode string, ar entity.AuthRequest) (st
 	if err != nil {
 		return "", httpstatus, err
 	}
-	return response.AccessToken, httpstatus, nil
+	return response.IdToken, httpstatus, nil
 }
 
 func setCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, accessCode string, authRequest entity.AuthRequest, applicationConfig config.ApplicationConfig) error {
