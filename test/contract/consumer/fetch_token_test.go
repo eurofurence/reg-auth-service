@@ -51,11 +51,12 @@ func TestConsumer(t *testing.T) {
 		ctx := context.Background()
 
 		client := idpclient.New()
-		actualResponse, err := client.TokenWithAuthenticationCodeAndPKCE(ctx, "example-service", tstAuthorizationCode, tstPkceVerifier)
+		actualResponse, httpstatus, err := client.TokenWithAuthenticationCodeAndPKCE(ctx, "example-service", tstAuthorizationCode, tstPkceVerifier)
 		if err != nil {
 			return err
 		}
 
+		require.Equal(t, http.StatusOK, httpstatus)
 		require.EqualValues(t, tstExpectedResponse, *actualResponse, "token response did not match")
 		return nil
 	}

@@ -21,13 +21,12 @@ const CommandName = "idp_token"
 // --- instance creation ---
 
 func New() idp.IdentityProviderClient {
-	timeout := config.TokenRequestTimeout()
-
 	downstreamcall.ConfigureGobreakerCommand(CommandName)
 
 	return &IdentityProviderClientImpl{
 		netClient: &http.Client{
-			Timeout: timeout,
+			// This fails immediately with "context canceled" most of the time, even if hard coding 5 seconds
+			// Timeout: 5 * time.Second,
 		},
 	}
 }
@@ -53,18 +52,20 @@ func TokenRequestBody(appConfig config.ApplicationConfig, authorizationCode stri
 	return requestBody
 }
 
-func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*idp.TokenResponseDto, error) {
+func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*idp.TokenResponseDto, int, error) {
 	appConfig, err := config.GetApplicationConfig(applicationConfigName)
 	if err != nil {
 		logging.Ctx(ctx).Warn(err.Error())
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	requestBody := TokenRequestBody(appConfig, authorizationCode, pkceVerifier)
 
 	tokenEndpoint := config.TokenEndpoint()
 
-	responseBody, httpstatus, err := downstreamcall.GobreakerPerformPOST(ctx, i.netClient, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
+	timeout := config.TokenRequestTimeout()
+
+	responseBody, httpstatus, err := downstreamcall.GobreakerPerformPOST(ctx, i.netClient, timeout, tokenEndpoint, requestBody, media.ContentTypeApplicationXWwwFormUrlencoded)
 
 	if err != nil || httpstatus != http.StatusOK {
 		if err == nil {
@@ -79,15 +80,15 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 			logging.Ctx(ctx).Error(fmt.Sprintf("error requesting token from identity provider with no structured response available: local error is %s", err.Error()))
 		}
 
-		return nil, err
+		return nil, httpstatus, err
 	}
 
 	successResponseDto := &idp.TokenResponseDto{}
 	err = downstreamcall.ParseJson(responseBody, successResponseDto)
 	if err != nil {
 		logging.Ctx(ctx).Error(fmt.Sprintf("error parsing token response from identity provider: error is %s", err.Error()))
-		return nil, err
+		return nil, http.StatusBadGateway, err
 	}
 
-	return successResponseDto, nil
+	return successResponseDto, httpstatus, nil
 }

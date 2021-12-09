@@ -58,9 +58,9 @@ func dropOffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessCode, err := fetchAccessCode(ctx, authCode, *authRequest, applicationConfig)
+	accessCode, httpstatus, err := fetchToken(ctx, authCode, *authRequest)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, "couldn't fetch access code: "+err.Error(), "internal error")
+		dropOffErrorHandler(ctx, w, state, httpstatus, "couldn't fetch access code: "+err.Error(), "failed to fetch token")
 		return
 	}
 
@@ -78,12 +78,12 @@ func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, state strin
 	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
 }
 
-func fetchAccessCode(ctx context.Context, authCode string, ar entity.AuthRequest, ac config.ApplicationConfig) (string, error) {
-	response, err := IDPClient.TokenWithAuthenticationCodeAndPKCE(ctx, ar.Application, authCode, ar.PkceCodeVerifier)
+func fetchToken(ctx context.Context, authCode string, ar entity.AuthRequest) (string, int, error) {
+	response, httpstatus, err := IDPClient.TokenWithAuthenticationCodeAndPKCE(ctx, ar.Application, authCode, ar.PkceCodeVerifier)
 	if err != nil {
-		return "", err
+		return "", httpstatus, err
 	}
-	return response.AccessToken, nil
+	return response.IdToken, httpstatus, nil
 }
 
 func setCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, accessCode string, authRequest entity.AuthRequest, applicationConfig config.ApplicationConfig) error {
