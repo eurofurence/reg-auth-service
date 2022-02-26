@@ -9,7 +9,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/api/v1/health"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/eurofurence/reg-auth-service/web/util/media"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-http-utils/headers"
 )
 

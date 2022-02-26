@@ -13,7 +13,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp/idpclient"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/eurofurence/reg-auth-service/web/controller"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 var IDPClient idp.IdentityProviderClient

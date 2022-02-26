@@ -1,7 +1,7 @@
 package web
 
 import (
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
 	"time"
 
@@ -13,7 +13,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/web/filter/corsfilter"
 	"github.com/eurofurence/reg-auth-service/web/filter/logreqid"
 	"github.com/eurofurence/reg-auth-service/web/filter/reqid"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 func Create() chi.Router {

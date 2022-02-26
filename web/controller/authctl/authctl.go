@@ -17,7 +17,7 @@ import (
 	"github.com/eurofurence/reg-auth-service/internal/repository/database"
 	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 	"github.com/eurofurence/reg-auth-service/web/controller"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 const responseType = "code"
