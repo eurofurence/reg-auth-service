@@ -3,8 +3,7 @@ package consumer
 import (
 	"context"
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
-	"github.com/eurofurence/reg-auth-service/internal/repository/idp/idpclient"
-	"github.com/eurofurence/reg-auth-service/web/util/media"
+	"github.com/eurofurence/reg-auth-service/internal/web/util/media"
 	"github.com/go-http-utils/headers"
 	"github.com/pact-foundation/pact-go/dsl"
 	"github.com/stretchr/testify/require"
@@ -36,10 +35,10 @@ func TestConsumer(t *testing.T) {
 
 	tstExpectedResponse := idp.TokenResponseDto{
 		AccessToken: "XYZ",
-		ExpiresIn: 86400,
-		IdToken: "abc",
-		Scope: "example",
-		TokenType: "Bearer",
+		ExpiresIn:   86400,
+		IdToken:     "abc",
+		Scope:       "example",
+		TokenType:   "Bearer",
 	}
 
 	// Pass in test case (consumer side)
@@ -50,7 +49,7 @@ func TestConsumer(t *testing.T) {
 
 		ctx := context.Background()
 
-		client := idpclient.New()
+		client := idp.New()
 		actualResponse, httpstatus, err := client.TokenWithAuthenticationCodeAndPKCE(ctx, "example-service", tstAuthorizationCode, tstPkceVerifier)
 		if err != nil {
 			return err
@@ -71,7 +70,7 @@ func TestConsumer(t *testing.T) {
 		WithRequest(dsl.Request{
 			Method: http.MethodPost,
 			Headers: dsl.MapMatcher{
-				headers.ContentType:   dsl.String(media.ContentTypeApplicationXWwwFormUrlencoded),
+				headers.ContentType: dsl.String(media.ContentTypeApplicationXWwwFormUrlencoded),
 			},
 			Path: dsl.String("/token"),
 			Body: tstRequestBody,

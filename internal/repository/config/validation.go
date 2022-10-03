@@ -2,22 +2,38 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-func addError(errs validationErrors, key string, value interface{}, message string) {
+func addError(errs url.Values, key string, value interface{}, message string) {
 	errs[key] = append(errs[key], fmt.Sprintf("value '%v' %s", value, message))
 }
 
-func validateDropoffEndpointUrl(errs validationErrors, value string) {
+func notInAllowedValues(allowed []string, value string) bool {
+	for _, v := range allowed {
+		if v == value {
+			return false
+		}
+	}
+	return true
+}
+
+func checkIntValueRange(errs *url.Values, min int, max int, key string, value int) {
+	if value < min || value > max {
+		errs.Add(key, fmt.Sprintf("%s field must be an integer at least %d and at most %d", key, min, max))
+	}
+}
+
+func validateDropoffEndpointUrl(errs url.Values, value string) {
 	if value == "" {
 		addError(errs, "dropoff_endpoint_url", value, "cannot not be empty")
 	}
 }
 
-func validateServerConfiguration(errs validationErrors, sc serverConfig) {
+func validateServerConfiguration(errs url.Values, sc serverConfig) {
 	if sc.Port == "" {
 		addError(errs, "server.port", sc.Port, "cannot be empty")
 	} else {
@@ -28,12 +44,23 @@ func validateServerConfiguration(errs validationErrors, sc serverConfig) {
 			addError(errs, "server.port", sc.Port, "must be a nonprivileged port")
 		}
 	}
+	checkIntValueRange(&errs, 1, 300, "server.read_timeout_seconds", sc.ReadTimeout)
+	checkIntValueRange(&errs, 1, 300, "server.write_timeout_seconds", sc.WriteTimeout)
+	checkIntValueRange(&errs, 1, 300, "server.idle_timeout_seconds", sc.IdleTimeout)
 }
 
-func validateSecurityConfiguration(errs validationErrors, sc securityConfig) {
+func validateSecurityConfiguration(errs url.Values, sc securityConfig) {
 }
 
-func validateIdentityProviderConfiguration(errs validationErrors, ipc identityProviderConfig) {
+var allowedSeverities = []string{"DEBUG", "INFO", "WARN", "ERROR"}
+
+func validateLoggingConfiguration(errs url.Values, c loggingConfig) {
+	if notInAllowedValues(allowedSeverities[:], c.Severity) {
+		errs.Add("logging.severity", "must be one of DEBUG, INFO, WARN, ERROR")
+	}
+}
+
+func validateIdentityProviderConfiguration(errs url.Values, ipc identityProviderConfig) {
 	if ipc.AuthorizationEndpoint == "" {
 		addError(errs, "identity_provider.authorization_endpoint", ipc.AuthorizationEndpoint, "cannot not be empty")
 	}
@@ -51,7 +78,7 @@ func validateIdentityProviderConfiguration(errs validationErrors, ipc identityPr
 	}
 }
 
-func validateApplicationConfigurations(errs validationErrors, acs map[string]ApplicationConfig) {
+func validateApplicationConfigurations(errs url.Values, acs map[string]ApplicationConfig) {
 	if len(acs) == 0 {
 		addError(errs, "application_configs", acs, "must contain at least one entry")
 	}

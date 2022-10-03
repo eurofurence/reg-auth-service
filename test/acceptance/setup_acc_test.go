@@ -2,23 +2,23 @@ package acceptance
 
 import (
 	"context"
+	"github.com/eurofurence/reg-auth-service/internal/web/app"
+	"github.com/eurofurence/reg-auth-service/internal/web/controller/dropoffctl"
 	"log"
 	"net/http/httptest"
 	"time"
 
+	"github.com/eurofurence/reg-auth-service/internal/entity"
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database"
-	"github.com/eurofurence/reg-auth-service/internal/entity"
-	"github.com/eurofurence/reg-auth-service/web"
-	"github.com/eurofurence/reg-auth-service/web/controller/dropoffctl"
 )
 
 // placing these here because they are package global
 
 var (
-	ts *httptest.Server
-	tstAuthRequest *entity.AuthRequest = nil
-	tstAuthorizationCode = "abcdefghij9876543210"
+	ts                   *httptest.Server
+	tstAuthRequest       *entity.AuthRequest = nil
+	tstAuthorizationCode                     = "abcdefghij9876543210"
 )
 
 const tstDefaultConfigFile = "../../test/resources/config-acceptancetests.yaml"
@@ -49,7 +49,7 @@ func tstSetupConfig(configFilePath string) {
 }
 
 func tstSetupHttpTestServer() {
-	router := web.Create()
+	router := app.CreateRouter(context.Background())
 	ts = httptest.NewServer(router)
 }
 

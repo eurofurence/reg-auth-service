@@ -27,7 +27,9 @@
           "expires_in": 86400,
           "id_token": "abc",
           "scope": "example",
-          "token_type": "Bearer"
+          "token_type": "Bearer",
+          "error": "",
+          "error_description": ""
         }
       }
     }

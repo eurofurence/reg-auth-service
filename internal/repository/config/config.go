@@ -5,8 +5,25 @@ import (
 	"time"
 )
 
+func UseEcsLogging() bool {
+	return ecsLogging
+}
+
 func ServerAddr() string {
-	return ":" + configuration().Server.Port
+	c := configuration()
+	return fmt.Sprintf("%s:%s", c.Server.Address, c.Server.Port)
+}
+
+func ServerReadTimeout() time.Duration {
+	return time.Second * time.Duration(configuration().Server.ReadTimeout)
+}
+
+func ServerWriteTimeout() time.Duration {
+	return time.Second * time.Duration(configuration().Server.WriteTimeout)
+}
+
+func ServerIdleTimeout() time.Duration {
+	return time.Second * time.Duration(configuration().Server.IdleTimeout)
 }
 
 func IsCorsDisabled() bool {
@@ -40,4 +57,8 @@ func GetApplicationConfig(applicationName string) (ApplicationConfig, error) {
 	} else {
 		return ApplicationConfig{}, fmt.Errorf("no application configured for applicationName %s", applicationName)
 	}
+}
+
+func LoggingSeverity() string {
+	return configuration().Logging.Severity
 }

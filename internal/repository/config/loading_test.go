@@ -9,7 +9,7 @@ import (
 
 func TestLoadConfiguration_noFilename(t *testing.T) {
 	docs.Description("empty configuration filename is an error")
-	err := LoadConfiguration("")
+	err := StartupLoadConfiguration()
 	require.NotNil(t, err)
-	require.Equal(t, "no configuration filename provided", err.Error())
+	require.Equal(t, "configuration file argument missing. Please specify using -config argument. Aborting", err.Error())
 }

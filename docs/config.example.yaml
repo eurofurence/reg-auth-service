@@ -1,5 +1,7 @@
 server:
   port: 8081
+logging:
+  severity: INFO
 security:
   disable_cors: false
 # this must match the OAuth2 redirect_url setting on each client

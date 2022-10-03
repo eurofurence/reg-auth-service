@@ -13,5 +13,6 @@ updates:
     labels:
       - "dependencies"
     reviewers:
-      - "Jumpy-Squirrel"
       - "Fenrikur"
+      - "tinx"
+      - "Jumpy-Squirrel"
