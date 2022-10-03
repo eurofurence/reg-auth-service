@@ -3,12 +3,12 @@ package inmemorydb
 import (
 	"context"
 	"fmt"
+	aulogging "github.com/StephanHCB/go-autumn-logging"
 	"sync"
 	"time"
 
 	"github.com/eurofurence/reg-auth-service/internal/entity"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database/dbrepo"
-	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 )
 
 type InMemoryRepository struct {
@@ -19,8 +19,9 @@ func Create() dbrepo.Repository {
 	return &InMemoryRepository{}
 }
 
-func (r *InMemoryRepository) Open() {
+func (r *InMemoryRepository) Open() error {
 	r.authRequests = sync.Map{}
+	return nil
 }
 
 func (r *InMemoryRepository) Close() {
@@ -64,7 +65,7 @@ func (r *InMemoryRepository) DeleteAuthRequestByState(ctx context.Context, state
 func (r *InMemoryRepository) PruneAuthRequests(ctx context.Context) (uint, error) {
 	pruneCount := uint(0)
 
-	logging.Ctx(ctx).Info("Pruning auth requests ...")
+	aulogging.Logger.Ctx(ctx).Info().Print("Pruning auth requests ...")
 	r.authRequests.Range(func(state, ar interface{}) bool {
 		if ar.(*entity.AuthRequest).ExpiresAt.Before(time.Now()) {
 			r.authRequests.Delete(state)
@@ -72,7 +73,7 @@ func (r *InMemoryRepository) PruneAuthRequests(ctx context.Context) (uint, error
 		}
 		return true
 	})
-	logging.Ctx(ctx).Info("Pruned ", pruneCount, " auth requests.")
+	aulogging.Logger.Ctx(ctx).Info().Printf("Pruned %d auth requests.", pruneCount)
 
 	return pruneCount, nil
 }

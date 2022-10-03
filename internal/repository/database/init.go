@@ -2,12 +2,12 @@ package database
 
 import (
 	"context"
+	aulogging "github.com/StephanHCB/go-autumn-logging"
 	"time"
 
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database/dbrepo"
 	"github.com/eurofurence/reg-auth-service/internal/repository/database/inmemorydb"
-	"github.com/eurofurence/reg-auth-service/internal/repository/logging"
 )
 
 var (
@@ -21,9 +21,9 @@ func SetRepository(repository dbrepo.Repository) {
 	ActiveRepository = repository
 }
 
-func Open() {
+func Open() error {
 	var r dbrepo.Repository
-	logging.NoCtx().Info("Opening inmemory database...")
+	aulogging.Logger.NoCtx().Info().Print("Opening inmemory database...")
 	r = inmemorydb.Create()
 	r.Open()
 	pruneTicker = time.NewTicker(config.AuthRequestTimeout())
@@ -40,10 +40,11 @@ func Open() {
 		}
 	}()
 	SetRepository(r)
+	return nil
 }
 
 func Close() {
-	logging.NoCtx().Info("Closing database...")
+	aulogging.Logger.NoCtx().Info().Print("Closing database...")
 	pruneStop <- true
 	GetRepository().Close()
 	SetRepository(nil)
@@ -51,7 +52,7 @@ func Close() {
 
 func GetRepository() dbrepo.Repository {
 	if ActiveRepository == nil {
-		logging.NoCtx().Fatal("You must Open() the database before using it. This is an error in your implementation.")
+		aulogging.Logger.NoCtx().Fatal().Print("You must Open() the database before using it. This is an error in your implementation.")
 	}
 	return ActiveRepository
 }

@@ -4,6 +4,7 @@ import "time"
 
 type conf struct {
 	Server             serverConfig                 `yaml:"server"`
+	Logging            loggingConfig                `yaml:"logging"`
 	Security           securityConfig               `yaml:"security"`
 	DropoffEndpointUrl string                       `yaml:"dropoff_endpoint_url"`
 	IdentityProvider   identityProviderConfig       `yaml:"identity_provider"`
@@ -11,11 +12,19 @@ type conf struct {
 }
 
 type serverConfig struct {
-	Port string `yaml:"port"`
+	Address      string `yaml:"address"`
+	Port         string `yaml:"port"`
+	ReadTimeout  int    `yaml:"read_timeout_seconds"`
+	WriteTimeout int    `yaml:"write_timeout_seconds"`
+	IdleTimeout  int    `yaml:"idle_timeout_seconds"`
 }
 
 type securityConfig struct {
 	DisableCors bool `yaml:"disable_cors"`
+}
+
+type loggingConfig struct {
+	Severity string `yaml:"severity"`
 }
 
 type identityProviderConfig struct {
@@ -38,5 +47,3 @@ type ApplicationConfig struct {
 	CookiePath        string        `yaml:"cookie_path"`
 	CookieExpiry      time.Duration `yaml:"cookie_expiry"`
 }
-
-type validationErrors map[string][]string

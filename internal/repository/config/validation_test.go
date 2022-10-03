@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/url"
 	"testing"
 	"time"
 
@@ -9,8 +10,13 @@ import (
 )
 
 func tstValidatePort(t *testing.T, value string, errMessage string) {
-	errs := validationErrors{}
-	config := serverConfig{Port: value}
+	errs := url.Values{}
+	config := serverConfig{
+		Port:         value,
+		ReadTimeout:  3,
+		WriteTimeout: 3,
+		IdleTimeout:  3,
+	}
 	validateServerConfiguration(errs, config)
 	require.Equal(t, 1, len(errs))
 	require.Equal(t, []string{errMessage}, errs["server.port"])
@@ -48,7 +54,7 @@ func createValidIdentityProviderConfiguration() identityProviderConfig {
 
 func TestValidateIdentityProviderConfiguration_emptyAuthorizationEndpoint(t *testing.T) {
 	docs.Description("validation should catch a missing authorization endpoint in identity provider config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidIdentityProviderConfiguration()
 	config.AuthorizationEndpoint = ""
 	validateIdentityProviderConfiguration(errs, config)
@@ -58,7 +64,7 @@ func TestValidateIdentityProviderConfiguration_emptyAuthorizationEndpoint(t *tes
 
 func TestValidateIdentityProviderConfiguration_emptyTokenEndpoint(t *testing.T) {
 	docs.Description("validation should catch a missing token endpoint in identity provider config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidIdentityProviderConfiguration()
 	config.TokenEndpoint = ""
 	validateIdentityProviderConfiguration(errs, config)
@@ -68,7 +74,7 @@ func TestValidateIdentityProviderConfiguration_emptyTokenEndpoint(t *testing.T) 
 
 func TestValidateIdentityProviderConfiguration_emptyEndSessionEndpoint(t *testing.T) {
 	docs.Description("validation should catch a missing authorization endpoint in identity provider config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidIdentityProviderConfiguration()
 	config.EndSessionEndpoint = ""
 	validateIdentityProviderConfiguration(errs, config)
@@ -78,7 +84,7 @@ func TestValidateIdentityProviderConfiguration_emptyEndSessionEndpoint(t *testin
 
 func TestValidateIdentityProviderConfiguration_zeroTokenRequestTimeout(t *testing.T) {
 	docs.Description("validation should accept a zero token request timeout in identity provider config (means no timeout, not recommended)")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidIdentityProviderConfiguration()
 	config.TokenRequestTimeout = 0
 	validateIdentityProviderConfiguration(errs, config)
@@ -86,7 +92,7 @@ func TestValidateIdentityProviderConfiguration_zeroTokenRequestTimeout(t *testin
 }
 func TestValidateIdentityProviderConfiguration_negativeTokenRequestTimeout(t *testing.T) {
 	docs.Description("validation should catch a negative token request timeout in identity provider config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidIdentityProviderConfiguration()
 	config.TokenRequestTimeout = -time.Second
 	validateIdentityProviderConfiguration(errs, config)
@@ -96,7 +102,7 @@ func TestValidateIdentityProviderConfiguration_negativeTokenRequestTimeout(t *te
 
 func TestValidateIdentityProviderConfiguration_zeroAuthRequestTimeout(t *testing.T) {
 	docs.Description("validation should accept a zero auth request timeout in identity provider config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidIdentityProviderConfiguration()
 	config.AuthRequestTimeout = 0
 	validateIdentityProviderConfiguration(errs, config)
@@ -105,7 +111,7 @@ func TestValidateIdentityProviderConfiguration_zeroAuthRequestTimeout(t *testing
 
 func TestValidateIdentityProviderConfiguration_negativeAuthRequestTimeout(t *testing.T) {
 	docs.Description("validation should catch a negative auth request timeout in identity provider config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidIdentityProviderConfiguration()
 	config.AuthRequestTimeout = -time.Second
 	validateIdentityProviderConfiguration(errs, config)
@@ -129,7 +135,7 @@ func createValidApplicationConfig() ApplicationConfig {
 
 func TestValidateApplicationConfigs_validSingle(t *testing.T) {
 	docs.Description("validation should accept one valid application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	configs := map[string]ApplicationConfig{"test-application-config": createValidApplicationConfig()}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 0, len(errs))
@@ -137,7 +143,7 @@ func TestValidateApplicationConfigs_validSingle(t *testing.T) {
 
 func TestValidateApplicationConfigs_validMultiple(t *testing.T) {
 	docs.Description("validation should accept multiple valid application configs")
-	errs := validationErrors{}
+	errs := url.Values{}
 	configs := map[string]ApplicationConfig{"test-application-config-1": createValidApplicationConfig(), "test-application-config-2": createValidApplicationConfig()}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 0, len(errs))
@@ -145,7 +151,7 @@ func TestValidateApplicationConfigs_validMultiple(t *testing.T) {
 
 func TestValidateApplicationConfigs_empty(t *testing.T) {
 	docs.Description("validation should require at least one application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	configs := map[string]ApplicationConfig{}
 	validateApplicationConfigurations(errs, configs)
 	require.Equal(t, 1, len(errs))
@@ -154,7 +160,7 @@ func TestValidateApplicationConfigs_empty(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyDisplayName(t *testing.T) {
 	docs.Description("validation should catch a missing application config display name")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.DisplayName = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -165,7 +171,7 @@ func TestValidateApplicationConfigs_emptyDisplayName(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyScope(t *testing.T) {
 	docs.Description("validation should catch a missing scope in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.Scope = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -176,7 +182,7 @@ func TestValidateApplicationConfigs_emptyScope(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyClientId(t *testing.T) {
 	docs.Description("validation should catch a missing client ID in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.ClientId = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -187,7 +193,7 @@ func TestValidateApplicationConfigs_emptyClientId(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyClientSecret(t *testing.T) {
 	docs.Description("validation should catch a missing client secret in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.ClientSecret = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -198,7 +204,7 @@ func TestValidateApplicationConfigs_emptyClientSecret(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyDefaultDropoffUrl(t *testing.T) {
 	docs.Description("validation should catch a missing default redirect URL in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.DefaultDropoffUrl = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -209,7 +215,7 @@ func TestValidateApplicationConfigs_emptyDefaultDropoffUrl(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyDropoffUrlPattern(t *testing.T) {
 	docs.Description("validation should accept empty redirect URL pattern in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.DropoffUrlPattern = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -219,7 +225,7 @@ func TestValidateApplicationConfigs_emptyDropoffUrlPattern(t *testing.T) {
 
 func TestValidateApplicationConfigs_validDropoffUrlPattern(t *testing.T) {
 	docs.Description("validation should accept valid redirect URL pattern in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.DropoffUrlPattern = "https://reg.eurofurence.example.com/room/(\\?(foo=[a-z]+|bar=[0-9]{3,8}|&)+)?"
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -229,7 +235,7 @@ func TestValidateApplicationConfigs_validDropoffUrlPattern(t *testing.T) {
 
 func TestValidateApplicationConfigs_invalidDropoffUrlPattern(t *testing.T) {
 	docs.Description("validation should catch an invalid redirect URL pattern in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.DropoffUrlPattern = "(iammissingaroundbracketattheendohno"
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -240,7 +246,7 @@ func TestValidateApplicationConfigs_invalidDropoffUrlPattern(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyCookieName(t *testing.T) {
 	docs.Description("validation should catch a missing cookie name in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.CookieName = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -251,7 +257,7 @@ func TestValidateApplicationConfigs_emptyCookieName(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyCookieDomain(t *testing.T) {
 	docs.Description("validation should catch a missing cookie domain in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.CookieDomain = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -262,7 +268,7 @@ func TestValidateApplicationConfigs_emptyCookieDomain(t *testing.T) {
 
 func TestValidateApplicationConfigs_emptyCookiePath(t *testing.T) {
 	docs.Description("validation should catch a missing cookie path in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.CookiePath = ""
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -273,7 +279,7 @@ func TestValidateApplicationConfigs_emptyCookiePath(t *testing.T) {
 
 func TestValidateApplicationConfigs_negativeCookieExpiry(t *testing.T) {
 	docs.Description("validation should catch a negative cookie expiry in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.CookieExpiry = -1 * time.Hour
 	configs := map[string]ApplicationConfig{"test-application-config": config}
@@ -284,7 +290,7 @@ func TestValidateApplicationConfigs_negativeCookieExpiry(t *testing.T) {
 
 func TestValidateApplicationConfigs_zeroCookieExpiry(t *testing.T) {
 	docs.Description("validation should catch a zero cookie expiry in application config")
-	errs := validationErrors{}
+	errs := url.Values{}
 	config := createValidApplicationConfig()
 	config.CookieExpiry = 0
 	configs := map[string]ApplicationConfig{"test-application-config": config}

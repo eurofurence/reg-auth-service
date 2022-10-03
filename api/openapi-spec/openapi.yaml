@@ -1,0 +1,197 @@
+openapi: 3.0.3
+info:
+  title: Auth Service
+  description: |-
+    This service acts as a bridge between an OpenID Connect identity provider and the rest of the registration system backend.
+    
+    It provides redirect endpoints to log in and out, which set/update or clear a cookie, accordingly.
+    
+    Unlike all other services in the registration system backend, these endpoints are for the user's browser, not REST APIs.
+    
+    Whenever you get a 401 response for any of the other registration system endpoints, you send the user's browser to
+    the auth endpoint, setting an appropriate return url. When the user comes back, they'll have logged in
+    and you will no longer get 401. 
+    
+    ... until the token expires again, or the user terminates the session in another window
+    (which can also be done in the IDP via "terminate all sessions"). Or until you redirect them to the logout endpoint.
+
+    **IMPORTANT TO UNDERSTAND:** You do not EVER call this service on behalf of the user.
+    
+    You SEND their browser here via a redirect. They get
+    redirected on to the identity provider, possibly type in their password (or click some confirm dialog, or have
+    their expired token renewed, get asked for an SMS code, etc. etc.). Then they come back via redirect to you,
+    now having a secure http-only cookie, which the other services in the registration system can check.
+    
+    You as the frontend do not even get to see the token. You won't need it.
+
+    **ALSO IMPORTANT:** It is bad for security to use this in an iframe. So don't!
+
+    In terms of the OpenID Connect standard, this service implements the "authentication code flow" with PKCE.
+  license:
+    name: MIT
+    url: https://github.com/eurofurence/reg-attendee-service/blob/main/LICENSE
+  version: 0.1.0
+servers:
+  - url: /
+    description: localhost
+  - url: /authsrv
+    description: server
+tags:
+  - name: login
+    description: Log in or renew token in cookie
+  - name: logout
+    description: Clear cookie and terminate session with IDP
+  - name: info
+    description: Health and other public status information
+paths:
+  /v1/auth:
+    get:
+      tags:
+        - login
+      summary: Begin the log in flow
+      description: |-
+        The /auth endpoint begins an OpenID Connect authentication code flow. Some (potentially unknown)
+        website or application has realized that an unauthenticated user tried to access their service,
+        and now the user is being directed to the /auth endpoint so they can log in.
+
+        The config file contains a list of valid application configurations that this service can perform
+        authentication flows for. For each application configuration, a client_id, a client_secret, a
+        pattern for valid redirect_urls, a list of scopes and so on are configured. (see example config file)
+
+        Any additional query parameters not specified here are appended to the app's dropoff_url after a successful
+        authentication.
+        
+        IMPORTANT: all responses are text/html. You do not call this for the user, you SEND the user here via a redirect!
+        It is also not good security practice to use this in an iframe!
+      operationId: loginBeginFlow
+      parameters:
+        - name: app_name
+          in: query
+          description: |-
+            The name of the application that the user wants to be authenticated for. 
+            
+            Must be present as a key in the configuration file of this service under application_configs.
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z][a-z-]*[a-z]$'
+          example: registration-system
+        - name: dropoff_url
+          in: query
+          description: |-
+            Where to redirect the user after a successfull authentication flow. Use this to bring the user back
+            to their current position in your application.
+            
+            This URL must match the pattern of allowed URLs in the config file.
+          required: true
+          schema:
+            type: string
+            format: uri
+          example: https://example.com/app/some/deep/link/123453487623647
+      responses:
+        '302':
+          description: Successfully prepared the authentication code flow.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: URL of the identity provider (authorization_endpoint)
+        '400':
+          description: Syntactically invalid parameter values or app_name missing
+        '403':
+          description: forbidden dropoff_url (does not match pattern)
+        '404':
+          description: app_name not found in configuration
+        '500':
+          description: An unexpected error occurred
+  /v1/dropoff:
+    get:
+      tags:
+        - login
+      summary: End the log in flow
+      description: |-
+        The /dropoff endpoint is part of the OpenID Connect authorization code flow. Once the OpenID
+        Connect provider agrees to provide an access token it redirects the user agent to this
+        endpoint. Here, the reg-auth-service obtains the access token from the OIDC provider,
+        stores it in a cookie, and then redirects the user agent once more to the URL the
+        user agent initially intended to visit. (the dropoff url)
+
+        IMPORTANT: all responses are text/html. You do not ever call this! Also, you don't send the user here, 
+        the identity provider does that after the user has typed in their password (or the token has been renewed)!
+      operationId: loginEndFlow
+      parameters:
+        - name: state
+          in: query
+          description: random-string identifier of this flow
+          required: true
+          schema:
+            type: string
+        - name: code
+          in: query
+          description: temporary credential to obtain the access token from the OIDC provider
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Successfully finished the authentication code flow.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: the dropoff URL you provided when sending the user's browser to /v1/auth
+        '400':
+          description: Bad request (usually state or code parameter missing)
+        '404':
+          description: state value not found in in-memory store, or timed out
+        '500':
+          description: An unexpected error occurred
+  /v1/logout:
+    get:
+      tags:
+        - logout
+      summary: Log Out
+      description: |-
+        The /logout endpoint deletes the cookie and redirects back to the app's default dropoff url.
+
+        IMPORTANT: all responses are text/html. You do not call this for the user, you SEND the user here via a redirect!
+        It is also not good security practice to use this in an iframe!
+      operationId: loginEndFlow
+      parameters:
+        - name: app_name
+          in: query
+          description: |-
+            The name of the application that the user should be logged out of. 
+            
+            Must be present as a key in the configuration file of this service under application_configs.
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z][a-z-]*[a-z]$'
+          example: registration-system
+      responses:
+        '302':
+          description: Successfully logged out.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: the default dropoff URL configured for this app_name.
+        '400':
+          description: Bad request (usually app_name parameter missing)
+        '404':
+          description: app_name not found in configuration
+        '500':
+          description: An unexpected error occurred
+  /:
+    get:
+      tags:
+        - info
+      summary: Health
+      description: Health
+      responses:
+        '200':
+          description: Healthy.

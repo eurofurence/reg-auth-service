@@ -7,7 +7,7 @@ import (
 )
 
 type Repository interface {
-	Open()
+	Open() error
 	Close()
 
 	AddAuthRequest(ctx context.Context, ar *entity.AuthRequest) error
