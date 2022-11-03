@@ -5,14 +5,14 @@ go 1.18
 require (
 	github.com/StephanHCB/go-autumn-logging v0.3.0
 	github.com/StephanHCB/go-autumn-logging-zerolog v0.3.1
-	github.com/StephanHCB/go-autumn-restclient v0.4.1
+	github.com/StephanHCB/go-autumn-restclient v0.4.4
 	github.com/StephanHCB/go-autumn-restclient-circuitbreaker v0.4.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/google/uuid v1.3.0
 	github.com/pact-foundation/pact-go v1.7.0
 	github.com/rs/zerolog v1.28.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	gopkg.in/yaml.v2 v2.4.0
 )
 
