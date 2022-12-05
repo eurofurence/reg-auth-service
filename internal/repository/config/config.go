@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"time"
 )
@@ -61,4 +62,12 @@ func GetApplicationConfig(applicationName string) (ApplicationConfig, error) {
 
 func LoggingSeverity() string {
 	return configuration().Logging.Severity
+}
+
+func OidcTokenCookieName() string {
+	return configuration().Security.Oidc.TokenCookieName
+}
+
+func OidcKeySet() []*rsa.PublicKey {
+	return parsedKeySet
 }

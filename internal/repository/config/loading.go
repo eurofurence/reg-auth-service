@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/rsa"
 	"errors"
 	"flag"
 	aulogging "github.com/StephanHCB/go-autumn-logging"
@@ -14,6 +15,8 @@ var (
 	configurationData     *Application
 	configurationFilename string
 	ecsLogging            bool
+
+	parsedKeySet []*rsa.PublicKey
 )
 
 var (

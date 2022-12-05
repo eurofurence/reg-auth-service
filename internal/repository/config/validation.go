@@ -1,7 +1,9 @@
 package config
 
 import (
+	"crypto/rsa"
 	"fmt"
+	"github.com/golang-jwt/jwt/v4"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -49,7 +51,16 @@ func validateServerConfiguration(errs url.Values, sc ServerConfig) {
 	checkIntValueRange(&errs, 1, 300, "server.idle_timeout_seconds", sc.IdleTimeout)
 }
 
-func validateSecurityConfiguration(errs url.Values, sc SecurityConfig) {
+func validateSecurityConfiguration(errs url.Values, c SecurityConfig) {
+	parsedKeySet = make([]*rsa.PublicKey, 0)
+	for i, keyStr := range c.Oidc.TokenPublicKeysPEM {
+		publicKeyPtr, err := jwt.ParseRSAPublicKeyFromPEM([]byte(keyStr))
+		if err != nil {
+			errs.Add(fmt.Sprintf("security.oidc.token_public_keys_PEM[%d]", i), fmt.Sprintf("failed to parse RSA public key in PEM format: %s", err.Error()))
+		} else {
+			parsedKeySet = append(parsedKeySet, publicKeyPtr)
+		}
+	}
 }
 
 var allowedSeverities = []string{"DEBUG", "INFO", "WARN", "ERROR"}
