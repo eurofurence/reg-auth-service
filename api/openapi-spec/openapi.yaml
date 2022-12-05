@@ -152,7 +152,7 @@ paths:
     get:
       tags:
         - logout
-      summary: Log Out
+      summary: Log Out from Regsys (but not from IDP)
       description: |-
         The /logout endpoint deletes the cookie and redirects back to the app's default dropoff url.
 
