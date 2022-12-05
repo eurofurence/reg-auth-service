@@ -33,7 +33,7 @@ func validateDropoffEndpointUrl(errs url.Values, value string) {
 	}
 }
 
-func validateServerConfiguration(errs url.Values, sc serverConfig) {
+func validateServerConfiguration(errs url.Values, sc ServerConfig) {
 	if sc.Port == "" {
 		addError(errs, "server.port", sc.Port, "cannot be empty")
 	} else {
@@ -49,18 +49,18 @@ func validateServerConfiguration(errs url.Values, sc serverConfig) {
 	checkIntValueRange(&errs, 1, 300, "server.idle_timeout_seconds", sc.IdleTimeout)
 }
 
-func validateSecurityConfiguration(errs url.Values, sc securityConfig) {
+func validateSecurityConfiguration(errs url.Values, sc SecurityConfig) {
 }
 
 var allowedSeverities = []string{"DEBUG", "INFO", "WARN", "ERROR"}
 
-func validateLoggingConfiguration(errs url.Values, c loggingConfig) {
+func validateLoggingConfiguration(errs url.Values, c LoggingConfig) {
 	if notInAllowedValues(allowedSeverities[:], c.Severity) {
 		errs.Add("logging.severity", "must be one of DEBUG, INFO, WARN, ERROR")
 	}
 }
 
-func validateIdentityProviderConfiguration(errs url.Values, ipc identityProviderConfig) {
+func validateIdentityProviderConfiguration(errs url.Values, ipc IdentityProviderConfig) {
 	if ipc.AuthorizationEndpoint == "" {
 		addError(errs, "identity_provider.authorization_endpoint", ipc.AuthorizationEndpoint, "cannot not be empty")
 	}

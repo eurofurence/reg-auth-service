@@ -27,7 +27,7 @@ func ServerIdleTimeout() time.Duration {
 }
 
 func IsCorsDisabled() bool {
-	return configuration().Security.DisableCors
+	return configuration().Security.Cors.DisableCors
 }
 
 func TokenEndpoint() string {
@@ -39,7 +39,7 @@ func AuthorizationEndpoint() string {
 }
 
 func DropoffEndpointUrl() string {
-	return configuration().DropoffEndpointUrl
+	return configuration().Service.DropoffEndpointUrl
 }
 
 func TokenRequestTimeout() time.Duration {

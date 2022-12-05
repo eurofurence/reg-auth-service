@@ -1,8 +1,11 @@
+service:
+  name: 'Registration Auth Service Acceptance Test Configuration'
+  dropoff_endpoint_url: http://localhost:8081/v1/dropoff
 server:
   port: 8081
 security:
-  disable_cors: false
-dropoff_endpoint_url: http://localhost:8081/v1/dropoff
+  cors:
+    disable: false
 identity_provider:
   authorization_endpoint: https://auth.example.com/auth
   token_endpoint: https://auth.example.com/token

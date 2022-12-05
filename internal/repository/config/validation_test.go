@@ -11,7 +11,7 @@ import (
 
 func tstValidatePort(t *testing.T, value string, errMessage string) {
 	errs := url.Values{}
-	config := serverConfig{
+	config := ServerConfig{
 		Port:         value,
 		ReadTimeout:  3,
 		WriteTimeout: 3,
@@ -42,8 +42,8 @@ func TestValidateServerConfiguration_privileged(t *testing.T) {
 	tstValidatePort(t, "1023", "value '1023' must be a nonprivileged port")
 }
 
-func createValidIdentityProviderConfiguration() identityProviderConfig {
-	return identityProviderConfig{
+func createValidIdentityProviderConfiguration() IdentityProviderConfig {
+	return IdentityProviderConfig{
 		AuthorizationEndpoint: "https://example.com/auth",
 		TokenEndpoint:         "https://example.com/token",
 		EndSessionEndpoint:    "https://example.com/logout",

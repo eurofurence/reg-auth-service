@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	configurationData     *conf
+	configurationData     *Application
 	configurationFilename string
 	ecsLogging            bool
 )
@@ -22,7 +22,7 @@ var (
 )
 
 func init() {
-	configurationData = &conf{}
+	configurationData = &Application{}
 
 	flag.StringVar(&configurationFilename, "config", "", "config file path")
 	flag.BoolVar(&ecsLogging, "ecs-json-logging", false, "switch to structured json logging")
@@ -54,11 +54,11 @@ func logValidationErrors(errs url.Values) error {
 	return nil
 }
 
-func configuration() *conf {
+func configuration() *Application {
 	return configurationData
 }
 
-func setConfigurationDefaults(c *conf) {
+func setConfigurationDefaults(c *Application) {
 	if c.Server.Port == "" {
 		c.Server.Port = "8081"
 	}
@@ -76,13 +76,13 @@ func setConfigurationDefaults(c *conf) {
 	}
 }
 
-func validateConfiguration(newConfigurationData *conf) error {
+func validateConfiguration(newConfigurationData *Application) error {
 	errs := url.Values{}
 
 	validateServerConfiguration(errs, newConfigurationData.Server)
 	validateLoggingConfiguration(errs, newConfigurationData.Logging)
 	validateSecurityConfiguration(errs, newConfigurationData.Security)
-	validateDropoffEndpointUrl(errs, newConfigurationData.DropoffEndpointUrl)
+	validateDropoffEndpointUrl(errs, newConfigurationData.Service.DropoffEndpointUrl)
 	validateIdentityProviderConfiguration(errs, newConfigurationData.IdentityProvider)
 	validateApplicationConfigurations(errs, newConfigurationData.ApplicationConfigs)
 
@@ -90,7 +90,7 @@ func validateConfiguration(newConfigurationData *conf) error {
 }
 
 func ParseAndOverwriteConfig(yamlFile []byte) error {
-	newConfigurationData := &conf{}
+	newConfigurationData := &Application{}
 	err := yaml.UnmarshalStrict(yamlFile, newConfigurationData)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func StartupLoadConfiguration() error {
 	err := LoadConfiguration(configurationFilename)
 	if err != nil {
 		// cannot use logging package here as this would create a circular dependency (logging needs config)
-		aulogging.Logger.NoCtx().Error().Print("Error reading or parsing configuration file. Aborting.")
+		aulogging.Logger.NoCtx().Error().Printf("Error reading or parsing configuration file. Aborting. Error was: %s", err.Error())
 		return ErrorConfigFile
 	}
 	return nil
