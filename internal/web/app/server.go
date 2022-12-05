@@ -29,6 +29,7 @@ func CreateRouter(ctx context.Context) chi.Router {
 	server.Use(middleware.RequestLogger)
 	server.Use(middleware.PanicRecoverer)
 	server.Use(middleware.CorsHandling)
+	server.Use(middleware.TokenValidator)
 
 	healthctl.Create(server)
 	// add your controllers here

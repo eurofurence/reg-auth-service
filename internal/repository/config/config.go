@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"time"
 )
@@ -27,7 +28,7 @@ func ServerIdleTimeout() time.Duration {
 }
 
 func IsCorsDisabled() bool {
-	return configuration().Security.DisableCors
+	return configuration().Security.Cors.DisableCors
 }
 
 func TokenEndpoint() string {
@@ -39,7 +40,7 @@ func AuthorizationEndpoint() string {
 }
 
 func DropoffEndpointUrl() string {
-	return configuration().DropoffEndpointUrl
+	return configuration().Service.DropoffEndpointUrl
 }
 
 func TokenRequestTimeout() time.Duration {
@@ -61,4 +62,12 @@ func GetApplicationConfig(applicationName string) (ApplicationConfig, error) {
 
 func LoggingSeverity() string {
 	return configuration().Logging.Severity
+}
+
+func OidcTokenCookieName() string {
+	return configuration().Security.Oidc.TokenCookieName
+}
+
+func OidcKeySet() []*rsa.PublicKey {
+	return parsedKeySet
 }
