@@ -85,6 +85,12 @@ func fetchToken(ctx context.Context, authCode string, ar entity.AuthRequest) (st
 }
 
 func setCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, accessCode string, authRequest entity.AuthRequest, applicationConfig config.ApplicationConfig) error {
+	sameSite := http.SameSiteStrictMode
+	httpOnly := true // https://stackoverflow.com/questions/71819265/httponly-cookie-and-fetch
+	if config.IsCorsDisabled() {
+		sameSite = http.SameSiteNoneMode
+		httpOnly = false
+	}
 	cookie := &http.Cookie{
 		Name:     applicationConfig.CookieName,
 		Value:    accessCode,
@@ -92,7 +98,8 @@ func setCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter
 		Expires:  time.Now().Add(applicationConfig.CookieExpiry),
 		Path:     applicationConfig.CookiePath,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		HttpOnly: httpOnly,
+		SameSite: sameSite,
 	}
 	http.SetCookie(w, cookie)
 	w.Header().Set("Location", authRequest.DropOffUrl)
