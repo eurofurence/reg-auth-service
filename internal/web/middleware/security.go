@@ -96,11 +96,14 @@ func TokenValidator(next http.Handler) http.Handler {
 							for _, role := range parsedClaims.Global.Roles {
 								ctxvalues.SetAuthorizedAsRole(ctx, role)
 							}
+
+							next.ServeHTTP(w, r)
+							return
 						} else {
 							errorMessage = "empty claims substructure"
 						}
 					} else if err != nil {
-						errorMessage = err.Error()
+						errorMessage = "token parse error: " + err.Error()
 					} else {
 						errorMessage = "token parsed but invalid"
 					}
