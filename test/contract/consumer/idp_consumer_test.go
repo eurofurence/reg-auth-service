@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
+	"github.com/eurofurence/reg-auth-service/internal/web/util/ctxvalues"
 	"github.com/eurofurence/reg-auth-service/internal/web/util/media"
 	"github.com/go-http-utils/headers"
 	"github.com/pact-foundation/pact-go/dsl"
@@ -40,6 +41,16 @@ func TestConsumer(t *testing.T) {
 		Scope:       "example",
 		TokenType:   "Bearer",
 	}
+	tstExpectedUserInfoResponse := idp.UserinfoResponseDto{
+		Audience: []string{"123897612987-12987-12389"},
+		Subject:  "1234567",
+		Global: idp.GlobalDto{
+			Email:         "me@example.com",
+			EmailVerified: true,
+			Name:          "me",
+			Roles:         []string{"comedian", "fursuiter"},
+		},
+	}
 
 	// Pass in test case (consumer side)
 	// This uses the repository on the consumer side to make the http call, should be as low level as possible
@@ -47,7 +58,7 @@ func TestConsumer(t *testing.T) {
 		// initialize test configuration so we will talk to pact
 		_loadContractTestConfig(pact.Server.Port)
 
-		ctx := context.Background()
+		ctx := ctxvalues.CreateContextWithValueMap(context.Background())
 
 		client := idp.New()
 		actualResponse, httpstatus, err := client.TokenWithAuthenticationCodeAndPKCE(ctx, "example-service", tstAuthorizationCode, tstPkceVerifier)
@@ -57,6 +68,12 @@ func TestConsumer(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, httpstatus)
 		require.EqualValues(t, tstExpectedResponse, *actualResponse, "token response did not match")
+
+		ctxvalues.SetBearerAccessToken(ctx, "Bearer "+actualResponse.AccessToken)
+		actualUserInfoResponse, httpstatus, err := client.UserInfo(ctx)
+		require.Equal(t, http.StatusOK, httpstatus)
+		require.EqualValues(t, tstExpectedUserInfoResponse, *actualUserInfoResponse, "user info response did not match")
+
 		return nil
 	}
 
@@ -79,6 +96,23 @@ func TestConsumer(t *testing.T) {
 			Status:  200,
 			Headers: dsl.MapMatcher{headers.ContentType: dsl.String(media.ContentTypeApplicationJson)},
 			Body:    tstExpectedResponse,
+		})
+	pact.
+		AddInteraction().
+		Given("a user is logged in").
+		UponReceiving("a userinfo request").
+		WithRequest(dsl.Request{
+			Method: http.MethodGet,
+			Path:   dsl.String("/userinfo"),
+			Headers: dsl.MapMatcher{
+				headers.Authorization: dsl.String("Bearer XYZ"),
+			},
+			Body: nil,
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  200,
+			Headers: dsl.MapMatcher{headers.ContentType: dsl.String(media.ContentTypeApplicationJson)},
+			Body:    tstExpectedUserInfoResponse,
 		})
 
 	// Run the test, verify it did what we expected and capture the contract (writes a test log to logs/pact.log)

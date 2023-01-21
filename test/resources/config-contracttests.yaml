@@ -4,6 +4,8 @@ service:
 server:
   port: 8081
 security:
+  oidc:
+    user_info_url: http://localhost:{{ .pactPort }}/userinfo
   cors:
     disable: false
 identity_provider:

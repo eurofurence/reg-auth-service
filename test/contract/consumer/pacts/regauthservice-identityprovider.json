@@ -32,6 +32,44 @@
           "error_description": ""
         }
       }
+    },
+    {
+      "description": "a userinfo request",
+      "providerState": "a user is logged in",
+      "request": {
+        "method": "GET",
+        "path": "/userinfo",
+        "headers": {
+          "Authorization": "Bearer XYZ"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "aud": [
+            "123897612987-12987-12389"
+          ],
+          "auth_time": 0,
+          "global": {
+            "email": "me@example.com",
+            "email_verified": true,
+            "name": "me",
+            "roles": [
+              "comedian",
+              "fursuiter"
+            ]
+          },
+          "iss": "",
+          "iat": 0,
+          "rat": 0,
+          "sub": "1234567",
+          "error": "",
+          "error_description": ""
+        }
+      }
     }
   ],
   "metadata": {

@@ -13,8 +13,7 @@ import (
 
 // --- getting the values from the request ---
 
-func fromCookie(r *http.Request) string {
-	cookieName := config.OidcTokenCookieName()
+func fromCookie(r *http.Request, cookieName string) string {
 	if cookieName == "" {
 		// ok if not configured, don't accept cookies then
 		return ""
@@ -33,10 +32,10 @@ func fromAuthHeader(r *http.Request) string {
 	return r.Header.Get(headers.Authorization)
 }
 
-func fromAuthHeaderOrCookie(r *http.Request) string {
+func fromAuthHeaderOrCookie(r *http.Request, cookieName string) string {
 	h := fromAuthHeader(r)
 	if h == "" {
-		return fromCookie(r)
+		return fromCookie(r, cookieName)
 	} else {
 		return h
 	}
@@ -49,8 +48,6 @@ func keyFuncForKey(rsaPublicKey *rsa.PublicKey) func(token *jwt.Token) (interfac
 		return rsaPublicKey, nil
 	}
 }
-
-// TODO example - no idea if this matches the idp claims structure - compare to room service!
 
 type GlobalClaims struct {
 	Name  string   `json:"name"`
@@ -73,7 +70,7 @@ func TokenValidator(next http.Handler) http.Handler {
 
 		// try bearer token from either cookie or Authorization header
 		// (in this one service, do NOT fail even if authentication is invalid - we have endpoints that are there to remedy exactly that situation here)
-		bearerTokenValue := fromAuthHeaderOrCookie(r)
+		bearerTokenValue := fromAuthHeaderOrCookie(r, config.OidcIdTokenCookieName())
 		if bearerTokenValue != "" {
 			const bearerPrefix = "Bearer "
 			errorMessage := ""
@@ -88,13 +85,21 @@ func TokenValidator(next http.Handler) http.Handler {
 					if err == nil && token.Valid {
 						parsedClaims, ok := token.Claims.(*AllClaims)
 						if ok {
-							// TODO this is probably not the exact token structure
-							ctxvalues.SetBearerToken(ctx, bearerTokenValue)
+							ctxvalues.SetBearerIdToken(ctx, bearerTokenValue)
 							ctxvalues.SetEmail(ctx, parsedClaims.Global.EMail)
 							ctxvalues.SetName(ctx, parsedClaims.Global.Name)
 							ctxvalues.SetSubject(ctx, parsedClaims.Subject)
 							for _, role := range parsedClaims.Global.Roles {
 								ctxvalues.SetAuthorizedAsRole(ctx, role)
+							}
+
+							if config.OidcAccessTokenCookieName() != "" {
+								authTokenValue := fromCookie(r, config.OidcAccessTokenCookieName())
+								if authTokenValue != "" {
+									ctxvalues.SetBearerAccessToken(ctx, authTokenValue)
+								} else {
+									aulogging.Logger.Ctx(ctx).Warn().Printf("got id token, but no auth token for subject %s - continuing, but userinfo will fail", parsedClaims.Subject)
+								}
 							}
 
 							next.ServeHTTP(w, r)

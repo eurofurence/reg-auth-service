@@ -42,7 +42,7 @@ func TestAuth_Success_DropoffUrlSpecified(t *testing.T) {
 	docs.When("when they start an auth flow with valid app_name and valid dropoff_url")
 	testUrl := "/v1/auth?app_name=example-service"
 	testUrl = testUrl + "&dropoff_url=" + url.QueryEscape("https://example.com/app/?foo=abc")
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the user agent is redirected to the OpenID Connect auth URL with the correct parameters")
 	require.Equal(t, http.StatusFound, response.StatusCode, "unexpected http response status, must be HTTP 302 MOVED")
@@ -79,7 +79,7 @@ func TestAuth_Success_DefaultDropoffUrl(t *testing.T) {
 
 	docs.When("when they start an auth flow with valid app_name and do not specify a dropoff_url")
 	testUrl := "/v1/auth?app_name=example-service"
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the user agent is redirected to the OpenID Connect auth URL with the correct parameters")
 	require.Equal(t, http.StatusFound, response.StatusCode, "unexpected http response status, must be HTTP 302 MOVED")
@@ -116,7 +116,7 @@ func TestAuth_Failure_AppNameMissing(t *testing.T) {
 
 	docs.When("when they start an auth flow, but do not specify an app_name")
 	testUrl := "/v1/auth"
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusBadRequest, response.StatusCode, "unexpected http response status, must be HTTP 400")
@@ -131,7 +131,7 @@ func TestAuth_Failure_UnknownAppName(t *testing.T) {
 
 	docs.When("when they start an auth flow, but specify an unknown app_name")
 	testUrl := "/v1/auth?app_name=unknown-service"
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusNotFound, response.StatusCode, "unexpected http response status, must be HTTP 404")
@@ -147,7 +147,7 @@ func TestAuth_Failure_InvalidDropoffUrl(t *testing.T) {
 	docs.When("when they start an auth flow, but specify a dropoff url that does not match the configured pattern")
 	testUrl := "/v1/auth?app_name=example-service"
 	testUrl = testUrl + "&dropoff_url=" + url.QueryEscape("https://example.com/nomatch")
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusForbidden, response.StatusCode, "unexpected http response status, must be HTTP 403")
