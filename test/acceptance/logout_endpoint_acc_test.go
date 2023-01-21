@@ -14,7 +14,7 @@ import (
 // ----------------------------------------
 
 /* The /logout endpoint deletes the cookie and redirects to the app's default dropoff url.
- * 
+ *
  * Required parameters are:
  *  * app_name  - the name of the application that the user wants to be authenticated for
  */
@@ -26,7 +26,7 @@ func TestLogout_Success(t *testing.T) {
 
 	docs.When("when they call the logout endpoint with a valid app_name")
 	testUrl := "/v1/logout?app_name=example-service"
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the user agent is redirected to the default drop off URL of the app and the cookie deleted")
 	require.Equal(t, http.StatusFound, response.StatusCode, "unexpected http response status, must be HTTP 302 MOVED")
@@ -40,13 +40,18 @@ func TestLogout_Success(t *testing.T) {
 
 	cookies := response.Cookies()
 	var ac *http.Cookie = nil
+	var id *http.Cookie = nil
 	for _, cookie := range cookies {
-		if cookie.Name != "JWT" {
-			continue
+		if cookie.Name == "JWT" {
+			id = cookie
 		}
-		ac = cookie
+		if cookie.Name == "AUTH" {
+			ac = cookie
+		}
 	}
-	require.NotNil(t, ac, "AccessCode cookie must be present")
+	require.NotNil(t, id, "Id token cookie must be present")
+	require.NotNil(t, ac, "Access token cookie must be present")
+	require.Equal(t, "", id.Value)
 	require.Equal(t, "", ac.Value)
 	require.Equal(t, "example.com", ac.Domain)
 }
@@ -58,7 +63,7 @@ func TestLogout_Failure_AppNameMissing(t *testing.T) {
 
 	docs.When("when they call the logout endpoint, but do not specify an app_name")
 	testUrl := "/v1/logout"
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusBadRequest, response.StatusCode, "unexpected http response status, must be HTTP 400")
@@ -73,7 +78,7 @@ func TestLogout_Failure_UnknownAppName(t *testing.T) {
 
 	docs.When("when they call the logout endpoint, but specify an unknown app_name")
 	testUrl := "/v1/logout?app_name=unknown-service"
-	response := tstPerformGet(testUrl)
+	response := tstPerformGetNoRedirect(testUrl)
 
 	docs.Then("then the correct error is displayed")
 	require.Equal(t, http.StatusNotFound, response.StatusCode, "unexpected http response status, must be HTTP 404")

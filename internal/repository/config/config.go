@@ -31,6 +31,10 @@ func IsCorsDisabled() bool {
 	return configuration().Security.Cors.DisableCors
 }
 
+func CorsAllowOrigin() string {
+	return configuration().Security.Cors.AllowOrigin
+}
+
 func TokenEndpoint() string {
 	return configuration().IdentityProvider.TokenEndpoint
 }
@@ -64,10 +68,32 @@ func LoggingSeverity() string {
 	return configuration().Logging.Severity
 }
 
-func OidcTokenCookieName() string {
-	return configuration().Security.Oidc.TokenCookieName
+func OidcIdTokenCookieName() string {
+	return configuration().Security.Oidc.IdTokenCookieName
+}
+
+func OidcAccessTokenCookieName() string {
+	return configuration().Security.Oidc.AccessTokenCookieName
 }
 
 func OidcKeySet() []*rsa.PublicKey {
 	return parsedKeySet
+}
+
+func OidcUserInfoURL() string {
+	return configuration().Security.Oidc.UserInfoURL
+}
+
+func OidcUserInfoCacheRetentionTime() time.Duration {
+	return time.Duration(configuration().Security.Oidc.UserInfoCacheSeconds) * time.Second
+}
+
+func OidcUserInfoCacheEnabled() bool {
+	return configuration().Security.Oidc.UserInfoCacheSeconds > 0 &&
+		configuration().Security.Oidc.UserInfoURL != "" &&
+		configuration().Security.Oidc.AccessTokenCookieName != ""
+}
+
+func RelevantRoles() []string {
+	return configuration().Security.Oidc.RelevantRoles
 }

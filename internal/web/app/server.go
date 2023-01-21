@@ -6,10 +6,12 @@ import (
 	aulogging "github.com/StephanHCB/go-autumn-logging"
 	"github.com/StephanHCB/go-autumn-logging-zerolog/loggermiddleware"
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
+	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
 	"github.com/eurofurence/reg-auth-service/internal/web/controller/authctl"
 	"github.com/eurofurence/reg-auth-service/internal/web/controller/dropoffctl"
 	"github.com/eurofurence/reg-auth-service/internal/web/controller/healthctl"
 	"github.com/eurofurence/reg-auth-service/internal/web/controller/logoutctl"
+	"github.com/eurofurence/reg-auth-service/internal/web/controller/userinfoctl"
 	"github.com/eurofurence/reg-auth-service/internal/web/middleware"
 	"github.com/go-chi/chi/v5"
 	"net"
@@ -31,10 +33,13 @@ func CreateRouter(ctx context.Context) chi.Router {
 	server.Use(middleware.CorsHandling)
 	server.Use(middleware.TokenValidator)
 
+	idpClient := idp.New()
+
 	healthctl.Create(server)
 	// add your controllers here
 	authctl.Create(server)
-	dropoffctl.Create(server)
+	dropoffctl.Create(server, idpClient)
+	userinfoctl.Create(server, idpClient)
 	logoutctl.Create(server)
 	return server
 }

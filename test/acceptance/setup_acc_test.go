@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/eurofurence/reg-auth-service/internal/web/app"
 	"github.com/eurofurence/reg-auth-service/internal/web/controller/dropoffctl"
+	"github.com/eurofurence/reg-auth-service/internal/web/controller/userinfoctl"
 	"log"
 	"net/http/httptest"
 	"time"
@@ -38,7 +39,9 @@ func tstSetup(configFilePath string) {
 
 	database.GetRepository().AddAuthRequest(context.TODO(), tstAuthRequest)
 
-	dropoffctl.IDPClient = &mockIDPClient{}
+	idpMock := &mockIDPClient{}
+	dropoffctl.IDPClient = idpMock
+	userinfoctl.IDPClient = idpMock
 }
 
 func tstSetupConfig(configFilePath string) {

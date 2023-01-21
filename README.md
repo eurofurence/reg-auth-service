@@ -1,7 +1,6 @@
 # reg-auth-service
 
 <img src="https://github.com/eurofurence/reg-auth-service/actions/workflows/go.yml/badge.svg" alt="test status"/>
-<img src="https://github.com/eurofurence/reg-auth-service/actions/workflows/codeql-analysis.yml/badge.svg" alt="code quality status"/>
 
 ## Overview
 
@@ -19,7 +18,7 @@ Command line arguments
 
 This service uses go modules to provide dependency management, see `go.mod`.
 
-If you place this repository outside of your GOPATH, build and test runs will download all required
+If you place this repository outside your GOPATH, build and test runs will download all required
 dependencies by default.
 
 ## Running on localhost
@@ -29,7 +28,7 @@ directory and edit to match your local development environment.
 
 Build using `go build cmd/main.go`.
 
-Then run `./main -config config.yaml -migrate-database`.
+Then run `./main -config config.yaml`.
 
 ## Installation on the server
 
@@ -56,3 +55,8 @@ of its consumption of our OIDC identity provider.
 As described in the [pact-go installation instructions](https://github.com/pact-foundation/pact-go#installation),
 you will need to have the [pact ruby standalone binaries installed](https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh).
 They provide the local mock that receives the calls made during contract testing.
+
+## Limitations
+
+The userinfo endpoint only works for configured applications whose cookie name matches the
+global cookie name setting.

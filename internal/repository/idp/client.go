@@ -6,9 +6,12 @@ import (
 	aulogging "github.com/StephanHCB/go-autumn-logging"
 	aurestbreaker "github.com/StephanHCB/go-autumn-restclient-circuitbreaker/implementation/breaker"
 	aurestclientapi "github.com/StephanHCB/go-autumn-restclient/api"
+	aurestcaching "github.com/StephanHCB/go-autumn-restclient/implementation/caching"
 	auresthttpclient "github.com/StephanHCB/go-autumn-restclient/implementation/httpclient"
 	aurestlogging "github.com/StephanHCB/go-autumn-restclient/implementation/requestlogging"
 	"github.com/eurofurence/reg-auth-service/internal/repository/config"
+	"github.com/eurofurence/reg-auth-service/internal/web/util/ctxvalues"
+	"github.com/go-http-utils/headers"
 	"net/http"
 	"net/url"
 	"time"
@@ -20,8 +23,36 @@ type IdentityProviderClientImpl struct {
 
 // --- instance creation ---
 
+// useCacheCondition determines whether the cache should be used for a given request
+//
+// we cache only GET requests to the configured userinfo endpoint, and only for users who present a valid auth token
+func useCacheCondition(ctx context.Context, method string, url string, requestBody interface{}) bool {
+	return method == http.MethodGet && url == config.OidcUserInfoURL() && ctxvalues.BearerAccessToken(ctx) != ""
+}
+
+// storeResponseCondition determines whether to store a response in the cache
+//
+// we only cache responses of successful requests to the userinfo endpoint
+func storeResponseCondition(ctx context.Context, method string, url string, requestBody interface{}, response *aurestclientapi.ParsedResponse) bool {
+	return response.Status == http.StatusOK
+}
+
+// cacheKeyFunction determines the key to cache the response under
+//
+// we cannot use the default cache key function, we must cache per auth token
+func cacheKeyFunction(ctx context.Context, method string, requestUrl string, requestBody interface{}) string {
+	return fmt.Sprintf("%s %s %s", ctxvalues.BearerAccessToken(ctx), method, requestUrl)
+}
+
+// requestManipulator inserts Authorization when we are calling the userinfo endpoint
+func requestManipulator(ctx context.Context, r *http.Request) {
+	if r.Method == http.MethodGet && r.URL.String() == config.OidcUserInfoURL() {
+		r.Header.Set(headers.Authorization, ctxvalues.BearerAccessToken(ctx))
+	}
+}
+
 func New() IdentityProviderClient {
-	httpClient, err := auresthttpclient.New(0, nil, nil)
+	httpClient, err := auresthttpclient.New(0, nil, requestManipulator)
 	if err != nil {
 		aulogging.Logger.NoCtx().Fatal().WithErr(err).Printf("Failed to instantiate IDP client - BAILING OUT: %s", err.Error())
 	}
@@ -36,8 +67,21 @@ func New() IdentityProviderClient {
 		config.TokenRequestTimeout(),
 	)
 
+	client := circuitBreakerClient
+
+	if config.OidcUserInfoCacheEnabled() {
+		cachingClient := aurestcaching.New(circuitBreakerClient,
+			useCacheCondition,
+			storeResponseCondition,
+			cacheKeyFunction,
+			config.OidcUserInfoCacheRetentionTime(),
+			256,
+		)
+		client = cachingClient
+	}
+
 	return &IdentityProviderClientImpl{
-		client: circuitBreakerClient,
+		client: client,
 	}
 }
 
@@ -79,5 +123,34 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 		aulogging.Logger.Ctx(ctx).Error().Printf("error requesting token from identity provider: error from response is %s:%s, local error is %s", bodyDto.ErrorCode, bodyDto.ErrorDescription, err.Error())
 		return nil, response.Status, err
 	}
+	return &bodyDto, response.Status, nil
+}
+
+func (i *IdentityProviderClientImpl) UserInfo(ctx context.Context) (*UserinfoResponseDto, int, error) {
+	userinfoEndpoint := config.OidcUserInfoURL()
+	bodyDto := UserinfoResponseDto{}
+	response := aurestclientapi.ParsedResponse{
+		Body: &bodyDto,
+	}
+	err := i.client.Perform(ctx, http.MethodGet, userinfoEndpoint, nil, &response)
+	if err != nil {
+		aulogging.Logger.Ctx(ctx).Error().WithErr(err).Printf("error requesting user info from identity provider: error from response is %s:%s, local error is %s", bodyDto.ErrorCode, bodyDto.ErrorDescription, err.Error())
+		return nil, http.StatusBadGateway, err
+	}
+	if bodyDto.ErrorCode != "" || bodyDto.ErrorDescription != "" {
+		aulogging.Logger.Ctx(ctx).Error().Printf("received an error response from identity provider: error from response is %s:%s", bodyDto.ErrorCode, bodyDto.ErrorDescription)
+	}
+	if response.Status != http.StatusOK && response.Status != http.StatusUnauthorized && response.Status != http.StatusForbidden {
+		err = fmt.Errorf("unexpected http status %d, was expecting 200, 401, or 403", response.Status)
+		aulogging.Logger.Ctx(ctx).Error().Printf("error requesting user info from identity provider: error from response is %s:%s, local error is %s", bodyDto.ErrorCode, bodyDto.ErrorDescription, err.Error())
+		return nil, response.Status, err
+	}
+	if response.Status == http.StatusOK {
+		if bodyDto.ErrorCode != "" || bodyDto.ErrorDescription != "" {
+			err = fmt.Errorf("received an error response from identity provider: error from response is %s:%s", bodyDto.ErrorCode, bodyDto.ErrorDescription)
+			return nil, response.Status, err
+		}
+	}
+
 	return &bodyDto, response.Status, nil
 }

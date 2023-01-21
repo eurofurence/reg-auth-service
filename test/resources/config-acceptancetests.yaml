@@ -5,7 +5,11 @@ server:
   port: 8081
 security:
   oidc:
-    token_cookie_name: 'JWT'
+    id_token_cookie_name: 'JWT'
+    access_token_cookie_name: 'AUTH'
+    relevant_roles:
+      - admin
+      - staff
     token_public_keys_PEM:
       - |
         -----BEGIN PUBLIC KEY-----
@@ -17,6 +21,8 @@ security:
         cKWTjpBP2dPwVZ4WWC+9aGVd+Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbc
         mwIDAQAB
         -----END PUBLIC KEY-----
+    # the actual url is not used, but we need to set one so the feature is toggled on
+    user_info_url: 'http://localhost:8081/user-info'
   cors:
     disable: false
 identity_provider:

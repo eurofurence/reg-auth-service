@@ -8,7 +8,8 @@ import (
 const ContextMap = "map"
 
 const ContextRequestId = "requestid"
-const ContextBearerToken = "bearertoken"
+const ContextIdToken = "idtoken"
+const ContextAccessToken = "accesstoken"
 const ContextAuthorizedAs = "authorizedas"
 const ContextEmail = "email"
 const ContextName = "name"
@@ -52,12 +53,20 @@ func SetRequestId(ctx context.Context, requestId string) {
 	setValue(ctx, ContextRequestId, requestId)
 }
 
-func BearerToken(ctx context.Context) string {
-	return valueOrDefault(ctx, ContextBearerToken, "")
+func BearerIdToken(ctx context.Context) string {
+	return valueOrDefault(ctx, ContextIdToken, "")
 }
 
-func SetBearerToken(ctx context.Context, bearerToken string) {
-	setValue(ctx, ContextBearerToken, bearerToken)
+func SetBearerIdToken(ctx context.Context, bearerToken string) {
+	setValue(ctx, ContextIdToken, bearerToken)
+}
+
+func BearerAccessToken(ctx context.Context) string {
+	return valueOrDefault(ctx, ContextAccessToken, "")
+}
+
+func SetBearerAccessToken(ctx context.Context, accessToken string) {
+	setValue(ctx, ContextAccessToken, accessToken)
 }
 
 func Email(ctx context.Context) string {

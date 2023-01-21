@@ -16,9 +16,9 @@ import (
 
 var IDPClient idp.IdentityProviderClient
 
-func Create(server chi.Router) {
+func Create(server chi.Router, idpClient idp.IdentityProviderClient) {
 	if IDPClient == nil {
-		IDPClient = idp.New()
+		IDPClient = idpClient
 	}
 	server.Get("/v1/dropoff", dropOffHandler)
 }
@@ -56,13 +56,13 @@ func dropOffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessCode, httpstatus, err := fetchToken(ctx, authCode, *authRequest)
+	idToken, accessToken, httpstatus, err := fetchToken(ctx, authCode, *authRequest)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, httpstatus, "couldn't fetch access code: "+err.Error(), "failed to fetch token")
+		dropOffErrorHandler(ctx, w, state, httpstatus, "couldn't fetch access codes: "+err.Error(), "failed to fetch token")
 		return
 	}
 
-	err = setCookieAndRedirectToDropOffUrl(ctx, w, accessCode, *authRequest, applicationConfig)
+	err = setCookiesAndRedirectToDropOffUrl(ctx, w, idToken, accessToken, *authRequest, applicationConfig)
 	if err != nil {
 		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, err.Error(), "internal error")
 		return
@@ -76,32 +76,52 @@ func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, state strin
 	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
 }
 
-func fetchToken(ctx context.Context, authCode string, ar entity.AuthRequest) (string, int, error) {
+func fetchToken(ctx context.Context, authCode string, ar entity.AuthRequest) (string, string, int, error) {
 	response, httpstatus, err := IDPClient.TokenWithAuthenticationCodeAndPKCE(ctx, ar.Application, authCode, ar.PkceCodeVerifier)
 	if err != nil {
-		return "", httpstatus, err
+		return "", "", httpstatus, err
 	}
-	return response.IdToken, httpstatus, nil
+	return response.IdToken, response.AccessToken, httpstatus, nil
 }
 
-func setCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, accessCode string, authRequest entity.AuthRequest, applicationConfig config.ApplicationConfig) error {
+func setCookiesAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, idToken string, accessToken string, authRequest entity.AuthRequest, applicationConfig config.ApplicationConfig) error {
 	sameSite := http.SameSiteStrictMode
 	httpOnly := true // https://stackoverflow.com/questions/71819265/httponly-cookie-and-fetch
+	secure := true
 	if config.IsCorsDisabled() {
 		sameSite = http.SameSiteNoneMode
 		httpOnly = false
+		secure = false
 	}
-	cookie := &http.Cookie{
+
+	// first set the cookie wanted by the application
+	applicationCookie := &http.Cookie{
 		Name:     applicationConfig.CookieName,
-		Value:    accessCode,
+		Value:    idToken,
 		Domain:   applicationConfig.CookieDomain,
 		Expires:  time.Now().Add(applicationConfig.CookieExpiry),
 		Path:     applicationConfig.CookiePath,
-		Secure:   true,
+		Secure:   secure,
 		HttpOnly: httpOnly,
 		SameSite: sameSite,
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, applicationCookie)
+
+	if config.OidcAccessTokenCookieName() != "" {
+		// additional cookie needed for this service
+		accessCookie := &http.Cookie{
+			Name:     config.OidcAccessTokenCookieName(),
+			Value:    accessToken,
+			Domain:   applicationConfig.CookieDomain,
+			Expires:  time.Now().Add(applicationConfig.CookieExpiry),
+			Path:     applicationConfig.CookiePath,
+			Secure:   secure,
+			HttpOnly: httpOnly,
+			SameSite: sameSite,
+		}
+		http.SetCookie(w, accessCookie)
+	}
+
 	w.Header().Set("Location", authRequest.DropOffUrl)
 	w.WriteHeader(http.StatusFound)
 	return nil

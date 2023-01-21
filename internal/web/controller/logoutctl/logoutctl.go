@@ -64,6 +64,22 @@ func clearCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWrit
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
+
+	if config.OidcAccessTokenCookieName() != "" {
+		// additional cookie needed for this service
+		accessCookie := &http.Cookie{
+			Name:     config.OidcAccessTokenCookieName(),
+			Value:    "",
+			Domain:   applicationConfig.CookieDomain,
+			Expires:  time.Now(),
+			MaxAge:   -1,
+			Path:     applicationConfig.CookiePath,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, accessCookie)
+	}
+
 	w.Header().Set("Location", applicationConfig.DefaultDropoffUrl)
 	w.WriteHeader(http.StatusFound)
 	return nil
