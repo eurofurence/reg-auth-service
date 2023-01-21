@@ -41,6 +41,8 @@ tags:
     description: Log in or renew token in cookie
   - name: logout
     description: Clear cookie and terminate session with IDP
+  - name: idp
+    description: Convenience endpoints to obtain information about the logged in user, or to centralize idp configuration
   - name: info
     description: Health and other public status information
 paths:
@@ -186,6 +188,77 @@ paths:
           description: app_name not found in configuration
         '500':
           description: An unexpected error occurred
+  /v1/userinfo:
+    get:
+      tags:
+        - idp
+      summary: Get relevant information about the logged in user
+      description: |-
+        Returns information about the logged in user: their assigned relevant roles, and their email address,
+        validating this with the identity provider.
+        
+        The user is determined from the cookie set by /v1/dropoff. This endpoint allows us to
+        use a http only secure cookie, and only exposes user information actually needed by the registration 
+        system frontend.
+        
+        First, The token is locally validated, both signature and expiry are checked.
+        
+        If an OIDC userinfo endpoint is configured, additionally, this endpoint is queried, and the response is
+        compared to the locally determined values. There is a short (configurable) caching period
+        to avoid bombarding the identity provider with identical requests. By default, the caching
+        period is set to 30 seconds.
+        
+        **Frontend:** use this (computationally cheap) endpoint to determine information about the logged in user, 
+        like prefilling their email address, or determining whether to show navigation to the admin frontend.
+        If you get a 401, redirect the user to /v1/auth.
+        
+        **Backend:** use this (computationally cheap) endpoint to ensure you really have a valid user token,
+        not a forgery or one with outdated role claims (such as revoked permissions) whenever the tradeoff between
+        speed and security falls on the side of making this additional online check.
+
+        Two examples:
+        
+        - creating new registrations is performance critical and does not expose user data, since the person
+          making the registration is _sending_ the data to us &rightarrow; don't call this
+        
+        - reading existing registrations, or any admin requests, can expose user data and is not very performance
+          critical &rightarrow; should call this before processing the request
+      operationId: getUserInfo
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: |-
+            Authorization required - either no cookie present or the token is expired or invalid.
+            
+            If an OIDC userinfo endpoint is configured, this may also mean the IDP did not recognize the token
+            (meaning it could be a forgery), or the role assignments differ (meaning the information in the token
+            is outdated, such as someone's admin rights were revoked).
+            
+            If you receive this response in the frontend, you should immediately redirect the user to the 
+            /v1/auth endpoint, so they can get a fresh (current) token.
+            
+            If you receive this response in the backend, you should NOT proceed and instead return 401 yourself.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: An unexpected error occurred. A best effort attempt is made to return details in the body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: A userinfo endpoint is configured, but the identity provider failed to respond.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /:
     get:
       tags:
@@ -195,3 +268,64 @@ paths:
       responses:
         '200':
           description: Healthy.
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+        - timestamp
+        - requestid
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: The time at which the error occurred.
+          example: 2006-01-02T15:04:05+07:00
+        requestid:
+          type: string
+          description: |-
+            An internal trace id assigned to the error. Used to find logs associated with errors across our services. 
+            Display to the user as something to communicate to us with inquiries about the error.
+          example: a8b7c6d5
+        message:
+          type: string
+          description: |-
+            A keyed description of the error. We do not write human readable text here because the user interface will be multi language.
+            
+            At this time, there are these values:
+            - auth.unauthorized (token missing completely or invalid, expired, or revoked in identity provider)
+            - auth.idp.error (the identity provider failed to respond to a request made by this service)
+          example: auth.unauthorized
+        details:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Optional additional details about the error. If available, will usually contain English language technobabble.
+          example:
+            email:
+              - email address does not match the regular expression
+              - email address cannot be empty
+            other:
+              - you need to refill the flux capacitor before the operation can succeed
+    UserInfo:
+      type: object
+      required:
+        - email
+        - roles
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address of the user as verified by the identity provider.
+          example: me@example.com
+        roles:
+          type: array
+          items:
+            type: string
+            example: admin
+          description: |-
+            The relevant roles the user is assigned in the identity provider. 
+            Filtered against a list in the configuration of this service to ensure only relevant information is returned.   

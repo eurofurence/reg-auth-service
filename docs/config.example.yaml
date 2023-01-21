@@ -25,13 +25,13 @@ security:
     # set this to true to send disable cors headers - not for production - local/test instances only - will log lots of warnings
     disable: false
     # if setting disable_cors, you should also specify this, as a comma separated list of allowed origins
-    allow_origin: 'http://localhost:8000,http://localhost:8001'
+    allow_origin: 'http://localhost:8000'
 logging:
   severity: INFO
 identity_provider:
-  authorization_endpoint: https://auth.example.com/auth
-  token_endpoint: https://auth.example.com/token
-  end_session_endpoint: https://auth.example.com/logout
+  authorization_endpoint: https://my.identity.provider.example.com/auth
+  token_endpoint: https://my.identity.provider.example.com/token
+  end_session_endpoint: https://my.identity.provider.example.com/logout
   token_request_timeout: 5s
   auth_request_timeout: 600s
 application_configs:
