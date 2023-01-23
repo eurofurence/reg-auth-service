@@ -67,11 +67,11 @@ func dropOffHandler(w http.ResponseWriter, r *http.Request) {
 		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, err.Error(), "internal error")
 		return
 	}
-	aulogging.Logger.Ctx(ctx).Info().Printf("OK v1/dropoff(%s)-> %d", state, http.StatusFound)
+	aulogging.Logger.Ctx(ctx).Info().Printf("OK dropoff[%s]", state)
 }
 
 func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, state string, status int, logMsg string, publicMsg string) {
-	aulogging.Logger.Ctx(ctx).Warn().Printf("FAIL v1/dropoff(%s) -> %d: %s", state, status, logMsg)
+	aulogging.Logger.Ctx(ctx).Warn().Printf("FAIL dropoff[%s]: %s", state, logMsg)
 	w.WriteHeader(status)
 	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
 }
@@ -87,9 +87,18 @@ func fetchToken(ctx context.Context, authCode string, ar entity.AuthRequest) (st
 func setCookiesAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, idToken string, accessToken string, authRequest entity.AuthRequest, applicationConfig config.ApplicationConfig) error {
 	sameSite := http.SameSiteStrictMode
 	httpOnly := true // https://stackoverflow.com/questions/71819265/httponly-cookie-and-fetch
+	secure := true
+	if config.SendInsecureCookies() {
+		secure = false
+		aulogging.Logger.Ctx(ctx).Warn().Print("sending insecure cookies. This configuration is not intended for production use, only for local development!")
+	}
 	if config.IsCorsDisabled() {
 		sameSite = http.SameSiteNoneMode
+		aulogging.Logger.Ctx(ctx).Warn().Print("sending Same Site Policy None cookies to work with disabled CORS. This configuration is not intended for production use, only for local development!")
+	}
+	if config.SendNonHttpOnlyCookies() {
 		httpOnly = false
+		aulogging.Logger.Ctx(ctx).Warn().Print("sending non-http-only cookies. This configuration is not intended for production use, only for local development!")
 	}
 
 	// first set the cookie wanted by the application
@@ -99,7 +108,7 @@ func setCookiesAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWrite
 		Domain:   applicationConfig.CookieDomain,
 		Expires:  time.Now().Add(applicationConfig.CookieExpiry),
 		Path:     applicationConfig.CookiePath,
-		Secure:   true,
+		Secure:   secure,
 		HttpOnly: httpOnly,
 		SameSite: sameSite,
 	}
@@ -113,7 +122,7 @@ func setCookiesAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWrite
 			Domain:   applicationConfig.CookieDomain,
 			Expires:  time.Now().Add(applicationConfig.CookieExpiry),
 			Path:     applicationConfig.CookiePath,
-			Secure:   true,
+			Secure:   secure,
 			HttpOnly: httpOnly,
 			SameSite: sameSite,
 		}

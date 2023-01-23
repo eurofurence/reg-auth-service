@@ -61,6 +61,10 @@ func validateSecurityConfiguration(errs url.Values, c SecurityConfig) {
 			parsedKeySet = append(parsedKeySet, publicKeyPtr)
 		}
 	}
+
+	if c.Cors.DisableCors && c.Cors.InsecureCookies {
+		errs.Add("security.cors.disable", "not compatible with security.cors.insecure_cookies, because SameSitePolicy None only works with secure cookies")
+	}
 }
 
 var allowedSeverities = []string{"DEBUG", "INFO", "WARN", "ERROR"}

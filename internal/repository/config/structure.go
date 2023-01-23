@@ -45,8 +45,10 @@ type (
 	}
 
 	CorsConfig struct {
-		DisableCors bool   `yaml:"disable"`
-		AllowOrigin string `yaml:"allow_origin"`
+		DisableCors            bool   `yaml:"disable"`
+		AllowOrigin            string `yaml:"allow_origin"`
+		InsecureCookies        bool   `yaml:"insecure_cookies"`
+		DisableHttpOnlyCookies bool   `yaml:"disable_http_only_cookies"`
 	}
 
 	// LoggingConfig configures logging

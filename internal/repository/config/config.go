@@ -35,6 +35,14 @@ func CorsAllowOrigin() string {
 	return configuration().Security.Cors.AllowOrigin
 }
 
+func SendInsecureCookies() bool {
+	return configuration().Security.Cors.InsecureCookies
+}
+
+func SendNonHttpOnlyCookies() bool {
+	return configuration().Security.Cors.DisableHttpOnlyCookies
+}
+
 func TokenEndpoint() string {
 	return configuration().IdentityProvider.TokenEndpoint
 }

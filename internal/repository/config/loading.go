@@ -135,5 +135,15 @@ func StartupLoadConfiguration() error {
 		aulogging.Logger.NoCtx().Error().Printf("Error reading or parsing configuration file. Aborting. Error was: %s", err.Error())
 		return ErrorConfigFile
 	}
+
+	if IsCorsDisabled() {
+		aulogging.Logger.NoCtx().Warn().Print("Will send headers to disable CORS, and turn of httpOnly on cookies. This configuration is NOT intended for production use, only for local development!")
+	}
+	if SendInsecureCookies() {
+		aulogging.Logger.NoCtx().Warn().Print("Will send insecure cookies. This configuration is NOT intended for production use, only for local development!")
+	}
+	if SendNonHttpOnlyCookies() {
+		aulogging.Logger.NoCtx().Warn().Print("Will send non-http-only cookies. This configuration is NOT intended for production use, only for local development!")
+	}
 	return nil
 }

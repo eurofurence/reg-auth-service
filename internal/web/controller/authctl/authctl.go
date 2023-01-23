@@ -88,11 +88,11 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		authErrorHandler(ctx, w, regAppName, dropOffUrl, state, http.StatusInternalServerError, err.Error(), "internal error")
 		return
 	}
-	aulogging.Logger.Ctx(ctx).Info().Printf("OK v1/auth(%s,%s)[%s] -> %d", regAppName, dropOffUrl, state, http.StatusFound)
+	aulogging.Logger.Ctx(ctx).Info().Printf("OK auth(%s,%s)[%s]", regAppName, dropOffUrl, state)
 }
 
 func authErrorHandler(ctx context.Context, w http.ResponseWriter, regAppName string, dropOffUrl string, state string, status int, logMsg string, publicMsg string) {
-	aulogging.Logger.Ctx(ctx).Warn().Printf("FAIL v1/auth(%s,%s)[%s] -> %d: %s", regAppName, dropOffUrl, state, status, logMsg)
+	aulogging.Logger.Ctx(ctx).Warn().Printf("FAIL auth(%s,%s)[%s]: %s", regAppName, dropOffUrl, state, logMsg)
 	w.WriteHeader(status)
 	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
 }

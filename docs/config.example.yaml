@@ -33,6 +33,10 @@ security:
     disable: false
     # if setting disable_cors, you should also specify this, as a comma separated list of allowed origins
     allow_origin: 'http://localhost:8000'
+    # set this to true to disable the secure cookie flag (useful for proxies on localhost only) - not for production - will log lots of warnings
+    insecure_cookies: false
+    # set this to true to disable the http only flag (useful for debugging purposes) - not for production - will log lots of warnings
+    disable_http_only_cookies: false
 logging:
   severity: INFO
 identity_provider:
