@@ -7,7 +7,7 @@ security:
   oidc:
     id_token_cookie_name: 'JWT'
     access_token_cookie_name: 'AUTH'
-    relevant_roles:
+    relevant_groups:
       - admin
       - staff
     token_public_keys_PEM:

@@ -41,15 +41,13 @@ func TestConsumer(t *testing.T) {
 		Scope:       "example",
 		TokenType:   "Bearer",
 	}
-	tstExpectedUserInfoResponse := idp.UserinfoResponseDto{
-		Audience: []string{"123897612987-12987-12389"},
-		Subject:  "1234567",
-		Global: idp.GlobalDto{
-			Email:         "me@example.com",
-			EmailVerified: true,
-			Name:          "me",
-			Roles:         []string{"comedian", "fursuiter"},
-		},
+	tstExpectedUserInfoResponse := idp.UserinfoData{
+		Audience:      []string{"123897612987-12987-12389"},
+		Subject:       "1234567",
+		Email:         "me@example.com",
+		EmailVerified: true,
+		Name:          "me",
+		Groups:        []string{"comedian", "fursuiter"},
 	}
 
 	// Pass in test case (consumer side)
@@ -69,7 +67,7 @@ func TestConsumer(t *testing.T) {
 		require.Equal(t, http.StatusOK, httpstatus)
 		require.EqualValues(t, tstExpectedResponse, *actualResponse, "token response did not match")
 
-		ctxvalues.SetBearerAccessToken(ctx, "Bearer "+actualResponse.AccessToken)
+		ctxvalues.SetAccessToken(ctx, actualResponse.AccessToken)
 		actualUserInfoResponse, httpstatus, err := client.UserInfo(ctx)
 		require.Equal(t, http.StatusOK, httpstatus)
 		require.EqualValues(t, tstExpectedUserInfoResponse, *actualUserInfoResponse, "user info response did not match")
@@ -112,7 +110,9 @@ func TestConsumer(t *testing.T) {
 		WillRespondWith(dsl.Response{
 			Status:  200,
 			Headers: dsl.MapMatcher{headers.ContentType: dsl.String(media.ContentTypeApplicationJson)},
-			Body:    tstExpectedUserInfoResponse,
+			Body: idp.UserinfoResponseDto{
+				Data: tstExpectedUserInfoResponse,
+			},
 		})
 
 	// Run the test, verify it did what we expected and capture the contract (writes a test log to logs/pact.log)

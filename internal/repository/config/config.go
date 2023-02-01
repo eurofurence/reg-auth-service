@@ -102,6 +102,6 @@ func OidcUserInfoCacheEnabled() bool {
 		configuration().Security.Oidc.AccessTokenCookieName != ""
 }
 
-func RelevantRoles() []string {
-	return configuration().Security.Oidc.RelevantRoles
+func RelevantGroups() []string {
+	return configuration().Security.Oidc.RelevantGroups
 }

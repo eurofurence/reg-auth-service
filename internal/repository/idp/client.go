@@ -27,7 +27,7 @@ type IdentityProviderClientImpl struct {
 //
 // we cache only GET requests to the configured userinfo endpoint, and only for users who present a valid auth token
 func useCacheCondition(ctx context.Context, method string, url string, requestBody interface{}) bool {
-	return method == http.MethodGet && url == config.OidcUserInfoURL() && ctxvalues.BearerAccessToken(ctx) != ""
+	return method == http.MethodGet && url == config.OidcUserInfoURL() && ctxvalues.AccessToken(ctx) != ""
 }
 
 // storeResponseCondition determines whether to store a response in the cache
@@ -41,13 +41,13 @@ func storeResponseCondition(ctx context.Context, method string, url string, requ
 //
 // we cannot use the default cache key function, we must cache per auth token
 func cacheKeyFunction(ctx context.Context, method string, requestUrl string, requestBody interface{}) string {
-	return fmt.Sprintf("%s %s %s", ctxvalues.BearerAccessToken(ctx), method, requestUrl)
+	return fmt.Sprintf("%s %s %s", ctxvalues.AccessToken(ctx), method, requestUrl)
 }
 
 // requestManipulator inserts Authorization when we are calling the userinfo endpoint
 func requestManipulator(ctx context.Context, r *http.Request) {
 	if r.Method == http.MethodGet && r.URL.String() == config.OidcUserInfoURL() {
-		r.Header.Set(headers.Authorization, ctxvalues.BearerAccessToken(ctx))
+		r.Header.Set(headers.Authorization, "Bearer "+ctxvalues.AccessToken(ctx))
 	}
 }
 
@@ -126,7 +126,7 @@ func (i *IdentityProviderClientImpl) TokenWithAuthenticationCodeAndPKCE(ctx cont
 	return &bodyDto, response.Status, nil
 }
 
-func (i *IdentityProviderClientImpl) UserInfo(ctx context.Context) (*UserinfoResponseDto, int, error) {
+func (i *IdentityProviderClientImpl) UserInfo(ctx context.Context) (*UserinfoData, int, error) {
 	userinfoEndpoint := config.OidcUserInfoURL()
 	bodyDto := UserinfoResponseDto{}
 	response := aurestclientapi.ParsedResponse{
@@ -152,5 +152,5 @@ func (i *IdentityProviderClientImpl) UserInfo(ctx context.Context) (*UserinfoRes
 		}
 	}
 
-	return &bodyDto, response.Status, nil
+	return &bodyDto.Data, response.Status, nil
 }

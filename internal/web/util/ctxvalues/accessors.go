@@ -3,6 +3,7 @@ package ctxvalues
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 const ContextMap = "map"
@@ -12,6 +13,7 @@ const ContextIdToken = "idtoken"
 const ContextAccessToken = "accesstoken"
 const ContextAuthorizedAs = "authorizedas"
 const ContextEmail = "email"
+const ContextEmailVerified = "emailverified"
 const ContextName = "name"
 const ContextSubject = "subject"
 
@@ -53,19 +55,19 @@ func SetRequestId(ctx context.Context, requestId string) {
 	setValue(ctx, ContextRequestId, requestId)
 }
 
-func BearerIdToken(ctx context.Context) string {
+func IdToken(ctx context.Context) string {
 	return valueOrDefault(ctx, ContextIdToken, "")
 }
 
-func SetBearerIdToken(ctx context.Context, bearerToken string) {
-	setValue(ctx, ContextIdToken, bearerToken)
+func SetIdToken(ctx context.Context, token string) {
+	setValue(ctx, ContextIdToken, token)
 }
 
-func BearerAccessToken(ctx context.Context) string {
+func AccessToken(ctx context.Context) string {
 	return valueOrDefault(ctx, ContextAccessToken, "")
 }
 
-func SetBearerAccessToken(ctx context.Context, accessToken string) {
+func SetAccessToken(ctx context.Context, accessToken string) {
 	setValue(ctx, ContextAccessToken, accessToken)
 }
 
@@ -75,6 +77,17 @@ func Email(ctx context.Context) string {
 
 func SetEmail(ctx context.Context, email string) {
 	setValue(ctx, ContextEmail, email)
+}
+
+func EmailVerified(ctx context.Context) bool {
+	valueStr := valueOrDefault(ctx, ContextEmailVerified, "false")
+	return valueStr == "true"
+}
+
+func SetEmailVerified(ctx context.Context, verified bool) {
+	if verified {
+		setValue(ctx, ContextEmailVerified, "true")
+	}
 }
 
 func Name(ctx context.Context) string {
@@ -93,11 +106,23 @@ func SetSubject(ctx context.Context, Subject string) {
 	setValue(ctx, ContextSubject, Subject)
 }
 
-func IsAuthorizedAsRole(ctx context.Context, role string) bool {
-	value := valueOrDefault(ctx, fmt.Sprintf("%s-%s", ContextAuthorizedAs, role), "")
-	return value == role
+func IsAuthorizedAsGroup(ctx context.Context, group string) bool {
+	value := valueOrDefault(ctx, fmt.Sprintf("%s-%s", ContextAuthorizedAs, group), "")
+	return value == group
 }
 
-func SetAuthorizedAsRole(ctx context.Context, role string) {
-	setValue(ctx, fmt.Sprintf("%s-%s", ContextAuthorizedAs, role), role)
+func SetAuthorizedAsGroup(ctx context.Context, group string) {
+	setValue(ctx, fmt.Sprintf("%s-%s", ContextAuthorizedAs, group), group)
+}
+
+func ClearAuthorizedGroups(ctx context.Context) {
+	contextMapUntyped := ctx.Value(ContextMap)
+	if contextMapUntyped != nil {
+		contextMap := contextMapUntyped.(map[string]string)
+		for k, _ := range contextMap {
+			if strings.HasPrefix(k, ContextAuthorizedAs) {
+				delete(contextMap, k)
+			}
+		}
+	}
 }

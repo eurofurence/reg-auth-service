@@ -38,7 +38,7 @@ type (
 	OpenIdConnectConfig struct {
 		IdTokenCookieName     string   `yaml:"id_token_cookie_name"`     // optional, if set, the jwt token is also read from this cookie (useful for mixed web application setups, see reg-auth-service)
 		AccessTokenCookieName string   `yaml:"access_token_cookie_name"` // optional, if set, we place the auth token in a second cookie (used for userinfo endpoint)
-		RelevantRoles         []string `yaml:"relevant_roles"`
+		RelevantGroups        []string `yaml:"relevant_groups"`
 		TokenPublicKeysPEM    []string `yaml:"token_public_keys_PEM"`   // a list of public RSA keys in PEM format, see https://github.com/Jumpy-Squirrel/jwks2pem for obtaining PEM from openid keyset endpoint
 		UserInfoURL           string   `yaml:"user_info_url"`           // validation of admin accesses uses this endpoint to verify the token is still current and access has not been recently revoked
 		UserInfoCacheSeconds  int      `yaml:"user_info_cache_seconds"` // leave at 0 to disable caching
@@ -70,7 +70,7 @@ type (
 	// ApplicationConfig configures an OpenID Connect client.
 	ApplicationConfig struct {
 		DisplayName       string        `yaml:"display_name"`
-		Scope             string        `yaml:"scope"`
+		Scope             string        `yaml:"scope"` // the list of scopes, separated by spaces (?)
 		ClientId          string        `yaml:"client_id"`
 		ClientSecret      string        `yaml:"client_secret"`
 		DefaultDropoffUrl string        `yaml:"default_dropoff_url"`

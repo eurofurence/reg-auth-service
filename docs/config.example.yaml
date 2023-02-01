@@ -11,7 +11,7 @@ security:
     # used for creating and parsing the access token cookie (used by userinfo endpoint only)
     access_token_cookie_name: 'AUTH'
     # roles to pass through in the userinfo endpoint (all others are filtered)
-    relevant_roles:
+    relevant_groups:
       - admin
     # optional, allows local validation of tokens before they are even sent to the user info endpoint
     token_public_keys_PEM:
@@ -48,7 +48,7 @@ identity_provider:
 application_configs:
   example-service:
     display_name: Example Service
-    scope: example
+    scope: 'example openid email groups profile'
     client_id: IAmNotSoSecret.
     client_secret: IAmVerySecret!
     default_dropoff_url: https://example.com/app/

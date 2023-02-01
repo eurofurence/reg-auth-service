@@ -49,23 +49,23 @@
           "Content-Type": "application/json"
         },
         "body": {
-          "aud": [
-            "123897612987-12987-12389"
-          ],
-          "auth_time": 0,
-          "global": {
+          "data": {
+            "aud": [
+              "123897612987-12987-12389"
+            ],
+            "auth_time": 0,
             "email": "me@example.com",
             "email_verified": true,
             "name": "me",
-            "roles": [
+            "groups": [
               "comedian",
               "fursuiter"
-            ]
+            ],
+            "iss": "",
+            "iat": 0,
+            "rat": 0,
+            "sub": "1234567"
           },
-          "iss": "",
-          "iat": 0,
-          "rat": 0,
-          "sub": "1234567",
           "error": "",
           "error_description": ""
         }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/eurofurence/reg-auth-service/internal/web/util/ctxvalues"
 	"net/http"
+	"strings"
 
 	"github.com/eurofurence/reg-auth-service/internal/repository/idp"
 )
@@ -20,22 +21,40 @@ func (m *mockIDPClient) TokenWithAuthenticationCodeAndPKCE(ctx context.Context, 
 	return ret, http.StatusOK, nil
 }
 
-func (m *mockIDPClient) UserInfo(ctx context.Context) (*idp.UserinfoResponseDto, int, error) {
-	token := ctxvalues.BearerAccessToken(ctx)
-	if token == "Bearer idp_is_down" {
-		return &idp.UserinfoResponseDto{}, http.StatusBadGateway, errors.New("simulated situation: idp unreachable")
+func (m *mockIDPClient) UserInfo(ctx context.Context) (*idp.UserinfoData, int, error) {
+	ret := idp.UserinfoData{}
+
+	token := ctxvalues.AccessToken(ctx)
+	if token == "idp_is_down" {
+		return &ret, http.StatusBadGateway, errors.New("simulated situation: idp unreachable")
 	}
-	if token != "Bearer access_mock_value" {
-		return &idp.UserinfoResponseDto{}, http.StatusUnauthorized, nil
+	if !strings.HasPrefix(token, "access_mock_value") {
+		return &ret, http.StatusUnauthorized, nil
 	}
-	ret := &idp.UserinfoResponseDto{
-		Subject: "1234567890",
-		Global: idp.GlobalDto{
+	if token == "access_mock_value 101" {
+		ret = idp.UserinfoData{
+			Subject:       "101",
 			Email:         "jsquirrel_github_9a6d@packetloss.de",
 			EmailVerified: true,
 			Name:          "me",
-			Roles:         []string{"comedian", "fursuiter", "admin"},
-		},
+			Groups:        []string{"comedian", "fursuiter"},
+		}
+	} else if token == "access_mock_value 202" {
+		ret = idp.UserinfoData{
+			Subject:       "202",
+			Email:         "jsquirrel_github_9a6d@packetloss.de",
+			EmailVerified: true,
+			Name:          "me",
+			Groups:        []string{"comedian", "somethingelse"},
+		}
+	} else {
+		ret = idp.UserinfoData{
+			Subject:       "1234567890",
+			Email:         "jsquirrel_github_9a6d@packetloss.de",
+			EmailVerified: true,
+			Name:          "me",
+			Groups:        []string{"fursuiter", "staff", "admin"},
+		}
 	}
-	return ret, http.StatusOK, nil
+	return &ret, http.StatusOK, nil
 }
