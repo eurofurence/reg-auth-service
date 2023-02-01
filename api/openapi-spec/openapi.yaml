@@ -197,9 +197,9 @@ paths:
         Returns information about the logged in user: their assigned relevant roles, and their email address,
         validating this with the identity provider.
         
-        The user is determined from the cookie set by /v1/dropoff. This endpoint allows us to
+        The user is determined from the cookies set by /v1/dropoff. This endpoint allows us to
         use a http only secure cookie, and only exposes user information actually needed by the registration 
-        system frontend.
+        system.
         
         First, The token is locally validated, both signature and expiry are checked.
         
@@ -313,19 +313,35 @@ components:
     UserInfo:
       type: object
       required:
+        - subject
         - email
-        - roles
+        - email_verified
+        - groups
       properties:
+        subject:
+          type: string
+          description: The internal user id of the identity provider (aka the "subject").
+          example: Y6W7R2K9
+        name:
+          type: string
+          description: The name entered by the user. May be missing.
+          example: Jumpy
         email:
           type: string
           format: email
-          description: The email address of the user as verified by the identity provider.
+          description: The email address of the user.
           example: me@example.com
-        roles:
+        email_verified:
+          type: boolean
+          description: Has the email address been verified by the identity provider?
+        groups:
           type: array
           items:
             type: string
             example: admin
           description: |-
-            The relevant roles the user is assigned in the identity provider. 
-            Filtered against a list in the configuration of this service to ensure only relevant information is returned.   
+            The relevant groups the user is assigned in the identity provider.
+            
+            Filtered against a list in the configuration of this service to ensure only relevant information is returned.
+            
+            Note that the IDP sends group IDs, not names.

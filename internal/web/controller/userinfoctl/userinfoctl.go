@@ -30,67 +30,73 @@ func Create(server chi.Router, idpClient idp.IdentityProviderClient) {
 func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// ensure we have a id valid token at all
-	if ctxvalues.BearerIdToken(ctx) == "" {
+	// ensure we have a valid id token
+	if ctxvalues.IdToken(ctx) == "" {
 		unauthenticatedError(ctx, w, r, "you did not provide a valid token - see log for details", "no valid token in context - check logs above for validation errors")
 		return
 	}
 
-	roles := []string{}
-	for _, role := range config.RelevantRoles() {
-		if ctxvalues.IsAuthorizedAsRole(ctx, role) {
-			roles = append(roles, role)
+	groups := []string{}
+	for _, group := range config.RelevantGroups() {
+		if ctxvalues.IsAuthorizedAsGroup(ctx, group) {
+			groups = append(groups, group)
 		}
 	}
 
 	subject := ctxvalues.Subject(ctx)
 	response := userinfo.UserInfoDto{
-		Email: ctxvalues.Email(ctx),
-		Roles: roles,
+		Email:         ctxvalues.Email(ctx),
+		EmailVerified: ctxvalues.EmailVerified(ctx),
+		Groups:        groups,
+		Name:          ctxvalues.Name(ctx),
+		Subject:       ctxvalues.Subject(ctx),
 	}
 
-	if config.OidcUserInfoURL() != "" {
-		// ensure we have an access token at all
-		if ctxvalues.BearerAccessToken(ctx) == "" {
-			unauthenticatedError(ctx, w, r, "you did not provide a valid access token - see log for details", "no valid access token in context - check logs above for validation errors")
-			return
-		}
+	if config.OidcUserInfoURL() == "" {
+		unauthenticatedError(ctx, w, r, "no identity provider configured - see log for details", fmt.Sprintf("no idp userinfo endpoint configured"))
+		return
+	}
 
-		idpUserinfo, status, err := IDPClient.UserInfo(ctx)
-		if err != nil {
-			idpDownstreamError(ctx, w, r, "identity provider could not be reached - see log for details", err.Error())
-			return
-		}
-		if status == http.StatusUnauthorized || status == http.StatusForbidden {
-			unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("idp returned rejection status %d", status))
-			return
-		}
-		if status != http.StatusOK {
-			idpDownstreamError(ctx, w, r, "identity provider returned error status - see log for details", fmt.Sprintf("idp returned error status %d", status))
-			return
-		}
-		if idpUserinfo.Subject != subject {
-			unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("idp returned different subject %s instead of %s", idpUserinfo.Subject, subject))
-			return
-		}
+	// ensure we have an access token at all
+	if ctxvalues.AccessToken(ctx) == "" {
+		unauthenticatedError(ctx, w, r, "you did not provide a valid access token - see log for details", "no valid access token in context - check logs above for validation errors")
+		return
+	}
 
-		for _, role := range roles {
-			roleGivenInIdp := false
-			for _, idpRole := range idpUserinfo.Global.Roles {
-				if idpRole == role {
-					roleGivenInIdp = true
-				}
+	idpUserinfo, status, err := IDPClient.UserInfo(ctx)
+	if err != nil {
+		idpDownstreamError(ctx, w, r, "identity provider could not be reached - see log for details", err.Error())
+		return
+	}
+	if status == http.StatusUnauthorized || status == http.StatusForbidden {
+		unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("idp returned rejection status %d", status))
+		return
+	}
+	if status != http.StatusOK {
+		idpDownstreamError(ctx, w, r, "identity provider returned error status - see log for details", fmt.Sprintf("idp returned error status %d", status))
+		return
+	}
+	if idpUserinfo.Subject != subject {
+		unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("idp returned different subject %s instead of %s", idpUserinfo.Subject, subject))
+		return
+	}
+
+	for _, group := range groups {
+		groupGivenInIdp := false
+		for _, idpGroup := range idpUserinfo.Groups {
+			if idpGroup == group {
+				groupGivenInIdp = true
 			}
-			if !roleGivenInIdp {
-				unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("role %s not assigned to subject %s according to idp", role, idpUserinfo.Subject))
-				return
-			}
 		}
-
-		if idpUserinfo.Global.Email != response.Email {
-			unauthenticatedError(ctx, w, r, "identity provider rejected your token - email mismatch, please re-authenticate", fmt.Sprintf("subject %s email mismatch", idpUserinfo.Subject))
+		if !groupGivenInIdp {
+			unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("group %s not assigned to subject %s according to idp", group, idpUserinfo.Subject))
 			return
 		}
+	}
+
+	if idpUserinfo.Email != response.Email {
+		unauthenticatedError(ctx, w, r, "identity provider rejected your token - email mismatch, please re-authenticate", fmt.Sprintf("subject %s email mismatch", idpUserinfo.Subject))
+		return
 	}
 
 	w.Header().Add(headers.ContentType, media.ContentTypeApplicationJson)

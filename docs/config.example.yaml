@@ -11,7 +11,7 @@ security:
     # used for creating and parsing the access token cookie (used by userinfo endpoint only)
     access_token_cookie_name: 'AUTH'
     # roles to pass through in the userinfo endpoint (all others are filtered)
-    relevant_roles:
+    relevant_groups:
       - admin
     # optional, allows local validation of tokens before they are even sent to the user info endpoint
     token_public_keys_PEM:
@@ -28,6 +28,8 @@ security:
     # optional, if not configured, local validation is used if the key is provided.
     user_info_url: 'https://my.identity.provider.example.com/user-info'
     user_info_cache_seconds: 10
+    audience: 'only-allowed-audience-in-tokens'
+    issuer: 'only-allowed-issuer-in-tokens'
   cors:
     # set this to true to send disable cors headers - not for production - local/test instances only - will log lots of warnings
     disable: false
@@ -48,7 +50,7 @@ identity_provider:
 application_configs:
   example-service:
     display_name: Example Service
-    scope: example
+    scope: 'example openid email groups profile'
     client_id: IAmNotSoSecret.
     client_secret: IAmVerySecret!
     default_dropoff_url: https://example.com/app/

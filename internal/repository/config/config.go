@@ -88,6 +88,14 @@ func OidcKeySet() []*rsa.PublicKey {
 	return parsedKeySet
 }
 
+func OidcAllowedAudience() string {
+	return configuration().Security.Oidc.Audience
+}
+
+func OidcAllowedIssuer() string {
+	return configuration().Security.Oidc.Issuer
+}
+
 func OidcUserInfoURL() string {
 	return configuration().Security.Oidc.UserInfoURL
 }
@@ -102,6 +110,6 @@ func OidcUserInfoCacheEnabled() bool {
 		configuration().Security.Oidc.AccessTokenCookieName != ""
 }
 
-func RelevantRoles() []string {
-	return configuration().Security.Oidc.RelevantRoles
+func RelevantGroups() []string {
+	return configuration().Security.Oidc.RelevantGroups
 }
