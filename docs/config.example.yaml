@@ -28,6 +28,8 @@ security:
     # optional, if not configured, local validation is used if the key is provided.
     user_info_url: 'https://my.identity.provider.example.com/user-info'
     user_info_cache_seconds: 10
+    audience: 'only-allowed-audience-in-tokens'
+    issuer: 'only-allowed-issuer-in-tokens'
   cors:
     # set this to true to send disable cors headers - not for production - local/test instances only - will log lots of warnings
     disable: false

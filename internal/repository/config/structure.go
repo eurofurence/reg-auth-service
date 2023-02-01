@@ -42,6 +42,8 @@ type (
 		TokenPublicKeysPEM    []string `yaml:"token_public_keys_PEM"`   // a list of public RSA keys in PEM format, see https://github.com/Jumpy-Squirrel/jwks2pem for obtaining PEM from openid keyset endpoint
 		UserInfoURL           string   `yaml:"user_info_url"`           // validation of admin accesses uses this endpoint to verify the token is still current and access has not been recently revoked
 		UserInfoCacheSeconds  int      `yaml:"user_info_cache_seconds"` // leave at 0 to disable caching
+		Audience              string   `yaml:"audience"`
+		Issuer                string   `yaml:"issuer"`
 	}
 
 	CorsConfig struct {

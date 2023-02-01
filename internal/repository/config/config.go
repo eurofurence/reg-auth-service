@@ -88,6 +88,14 @@ func OidcKeySet() []*rsa.PublicKey {
 	return parsedKeySet
 }
 
+func OidcAllowedAudience() string {
+	return configuration().Security.Oidc.Audience
+}
+
+func OidcAllowedIssuer() string {
+	return configuration().Security.Oidc.Issuer
+}
+
 func OidcUserInfoURL() string {
 	return configuration().Security.Oidc.UserInfoURL
 }
