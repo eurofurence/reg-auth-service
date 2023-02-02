@@ -137,7 +137,7 @@ func StartupLoadConfiguration() error {
 	}
 
 	if IsCorsDisabled() {
-		aulogging.Logger.NoCtx().Warn().Print("Will send headers to disable CORS, and turn of httpOnly on cookies. This configuration is NOT intended for production use, only for local development!")
+		aulogging.Logger.NoCtx().Warn().Print("Will send headers to disable CORS, and send Same Site Policy None cookies to work with disabled CORS. This configuration is NOT intended for production use, only for local development!")
 	}
 	if SendInsecureCookies() {
 		aulogging.Logger.NoCtx().Warn().Print("Will send insecure cookies. This configuration is NOT intended for production use, only for local development!")
