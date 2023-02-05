@@ -145,5 +145,8 @@ func StartupLoadConfiguration() error {
 	if SendNonHttpOnlyCookies() {
 		aulogging.Logger.NoCtx().Warn().Print("Will send non-http-only cookies. This configuration is NOT intended for production use, only for local development!")
 	}
+	if OidcUserInfoURL() == "" {
+		aulogging.Logger.NoCtx().Warn().Print("Will skip token validation with identity provider. This configuration is NOT intended for production use, only for local development!")
+	}
 	return nil
 }

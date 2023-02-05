@@ -70,7 +70,11 @@ func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if config.OidcUserInfoURL() == "" {
-		unauthenticatedError(ctx, w, r, "no identity provider configured - see log for details", fmt.Sprintf("no idp userinfo endpoint configured"))
+		// we must accept the token info, or local testing won't work
+		aulogging.Logger.Ctx(ctx).Warn().Print("skipping token validation with IDP and taking info from token - this is not safe for production!")
+		w.Header().Add(headers.ContentType, media.ContentTypeApplicationJson)
+		w.WriteHeader(http.StatusOK)
+		writeJson(ctx, w, response)
 		return
 	}
 
