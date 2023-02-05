@@ -11,6 +11,7 @@ import (
 )
 
 type mockIDPClient struct {
+	recording []string
 }
 
 func (m *mockIDPClient) TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*idp.TokenResponseDto, int, error) {
@@ -25,6 +26,7 @@ func (m *mockIDPClient) UserInfo(ctx context.Context) (*idp.UserinfoData, int, e
 	ret := idp.UserinfoData{}
 
 	token := ctxvalues.AccessToken(ctx)
+	m.recording = append(m.recording, token)
 	if token == "idp_is_down" {
 		return &ret, http.StatusBadGateway, errors.New("simulated situation: idp unreachable")
 	}

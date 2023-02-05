@@ -3,6 +3,7 @@ package userinfoctl
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	aulogging "github.com/StephanHCB/go-autumn-logging"
 	"github.com/eurofurence/reg-auth-service/internal/api/v1/errorapi"
@@ -25,41 +26,51 @@ func Create(server chi.Router, idpClient idp.IdentityProviderClient) {
 		IDPClient = idpClient
 	}
 	server.Get("/v1/userinfo", userinfoHandler)
+	server.Get("/v1/frontend-userinfo", frontendUserinfoHandler)
 }
 
-func userinfoHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
+// localUserinfoHelper is the common part of both handlers.
+func localUserinfoHelper(ctx context.Context, w http.ResponseWriter, r *http.Request) (userinfo.UserInfoDto, error) {
 	// ensure we have a valid id token
 	if ctxvalues.IdToken(ctx) == "" {
 		unauthenticatedError(ctx, w, r, "you did not provide a valid token - see log for details", "no valid token in context - check logs above for validation errors")
-		return
-	}
-
-	groups := []string{}
-	for _, group := range config.RelevantGroups() {
-		if ctxvalues.IsAuthorizedAsGroup(ctx, group) {
-			groups = append(groups, group)
-		}
-	}
-
-	subject := ctxvalues.Subject(ctx)
-	response := userinfo.UserInfoDto{
-		Email:         ctxvalues.Email(ctx),
-		EmailVerified: ctxvalues.EmailVerified(ctx),
-		Groups:        groups,
-		Name:          ctxvalues.Name(ctx),
-		Subject:       ctxvalues.Subject(ctx),
-	}
-
-	if config.OidcUserInfoURL() == "" {
-		unauthenticatedError(ctx, w, r, "no identity provider configured - see log for details", fmt.Sprintf("no idp userinfo endpoint configured"))
-		return
+		return userinfo.UserInfoDto{}, errors.New("no id token")
 	}
 
 	// ensure we have an access token at all
 	if ctxvalues.AccessToken(ctx) == "" {
 		unauthenticatedError(ctx, w, r, "you did not provide a valid access token - see log for details", "no valid access token in context - check logs above for validation errors")
+		return userinfo.UserInfoDto{}, errors.New("no access token")
+	}
+
+	response := userinfo.UserInfoDto{
+		Email:         ctxvalues.Email(ctx),
+		EmailVerified: ctxvalues.EmailVerified(ctx),
+		Groups:        []string{},
+		Name:          ctxvalues.Name(ctx),
+		Subject:       ctxvalues.Subject(ctx),
+	}
+
+	for _, group := range config.RelevantGroups() {
+		if ctxvalues.IsAuthorizedAsGroup(ctx, group) {
+			response.Groups = append(response.Groups, group)
+		}
+	}
+
+	return response, nil
+}
+
+func userinfoHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	response, err := localUserinfoHelper(ctx, w, r)
+	if err != nil {
+		// unauthenticatedError sent already
+		return
+	}
+
+	if config.OidcUserInfoURL() == "" {
+		unauthenticatedError(ctx, w, r, "no identity provider configured - see log for details", fmt.Sprintf("no idp userinfo endpoint configured"))
 		return
 	}
 
@@ -76,12 +87,12 @@ func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 		idpDownstreamError(ctx, w, r, "identity provider returned error status - see log for details", fmt.Sprintf("idp returned error status %d", status))
 		return
 	}
-	if idpUserinfo.Subject != subject {
-		unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("idp returned different subject %s instead of %s", idpUserinfo.Subject, subject))
+	if idpUserinfo.Subject != response.Subject {
+		unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("idp returned different subject %s instead of %s", idpUserinfo.Subject, response.Subject))
 		return
 	}
 
-	for _, group := range groups {
+	for _, group := range response.Groups {
 		groupGivenInIdp := false
 		for _, idpGroup := range idpUserinfo.Groups {
 			if idpGroup == group {
@@ -96,6 +107,20 @@ func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	if idpUserinfo.Email != response.Email {
 		unauthenticatedError(ctx, w, r, "identity provider rejected your token - email mismatch, please re-authenticate", fmt.Sprintf("subject %s email mismatch", idpUserinfo.Subject))
+		return
+	}
+
+	w.Header().Add(headers.ContentType, media.ContentTypeApplicationJson)
+	w.WriteHeader(http.StatusOK)
+	writeJson(ctx, w, response)
+}
+
+func frontendUserinfoHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	response, err := localUserinfoHelper(ctx, w, r)
+	if err != nil {
+		// unauthenticatedError sent already
 		return
 	}
 
