@@ -24,6 +24,8 @@ var (
 
 const tstDefaultConfigFile = "../../test/resources/config-acceptancetests.yaml"
 
+var idpMock *mockIDPClient
+
 func tstSetup(configFilePath string) {
 	tstSetupConfig(configFilePath)
 	tstSetupHttpTestServer()
@@ -39,7 +41,9 @@ func tstSetup(configFilePath string) {
 
 	database.GetRepository().AddAuthRequest(context.TODO(), tstAuthRequest)
 
-	idpMock := &mockIDPClient{}
+	idpMock = &mockIDPClient{
+		recording: make([]string, 0),
+	}
 	dropoffctl.IDPClient = idpMock
 	userinfoctl.IDPClient = idpMock
 }

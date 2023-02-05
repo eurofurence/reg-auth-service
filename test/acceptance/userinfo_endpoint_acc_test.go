@@ -14,6 +14,30 @@ const valid_JWT_id_is_staff_sub202 = `eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhd
 
 const valid_JWT_id_is_staff_admin_sub1234567890 = `eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdF9oYXNoIjoidDdWYkV5NVQ3STdYSlh3VHZ4S3hLdyIsImF1ZCI6WyIxNGQ5ZjM3YS0xZWVjLTQ3YzktYTk0OS01ZjFlYmRmOWM4ZTUiXSwiYXV0aF90aW1lIjoxNTE2MjM5MDIyLCJlbWFpbCI6ImpzcXVpcnJlbF9naXRodWJfOWE2ZEBwYWNrZXRsb3NzLmRlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImV4cCI6MjA3NTEyMDgxNiwiZ3JvdXBzIjpbInN0YWZmIiwiYWRtaW4iXSwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJodHRwOi8vaWRlbnRpdHkubG9jYWxob3N0LyIsImp0aSI6IjQwNmJlM2U0LWY0ZTktNDdiNy1hYzVmLTA2YjkyNzQzMjg0OCIsIm5hbWUiOiJKb2huIEFkbWluIiwibm9uY2UiOiIzMGM4M2MxM2M5MTc5ODA0YWEwZjliMzkzNDI1OWQ3NSIsInJhdCI6MTY3NTExNzE3Nywic2lkIjoiZDdiOGZlN2EtMDc5YS00NTk2LThlNTMtYTYwZjg2YTA4YWM2Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.DRKPy0Rq-r5-Va6W5coT91JpDV2RkhYjniqIJmmPzOq3LphzRrlDKioDns4ilMxMEpfhFcmv87yOdPsPijUhEqy1a93BeJYMyU7DMdQBtD8R9oYU_-FmqS5dM9ZrBCZZUxTBeNBl2JGI-H1_IIqUH65PodoijO4N5ayw43q5xT1KP7PJKZ9YiMSsa4tUOp0R_Ay51DTIuti21TqqbSCC66sGH_1e1eeuhwBoU7Iws4oeepTRZ_XOdpn_YzTViPs7Byua-zohYgQYthDoCvLVfJOr77BV2vTUrQZfRca7prizXbVuQyxQJEpOBIuke29Gye6Qfbwpb4rMaza3fTLhZg`
 
+var expected_response_by_token = map[string]userinfo.UserInfoDto{
+	valid_JWT_id_is_not_staff_sub101: {
+		Subject:       "101",
+		Name:          "John Doe",
+		Email:         "jsquirrel_github_9a6d@packetloss.de",
+		EmailVerified: true,
+		Groups:        []string{},
+	},
+	valid_JWT_id_is_staff_sub202: {
+		Subject:       "202",
+		Name:          "John Staff",
+		Email:         "jsquirrel_github_9a6d@packetloss.de",
+		EmailVerified: true,
+		Groups:        []string{"staff"},
+	},
+	valid_JWT_id_is_staff_admin_sub1234567890: {
+		Subject:       "1234567890",
+		Name:          "John Admin",
+		Email:         "jsquirrel_github_9a6d@packetloss.de",
+		EmailVerified: true,
+		Groups:        []string{"admin", "staff"},
+	},
+}
+
 // -----------------------------------------
 // acceptance tests for the userinfo endpoint
 // -----------------------------------------
@@ -27,17 +51,10 @@ func TestUserinfo_Success(t *testing.T) {
 	response := tstPerformGetWithCookies("/v1/userinfo", valid_JWT_id_is_not_staff_sub101, "access_mock_value 101")
 
 	docs.Then("then the request is successful and the response is as expected")
-	require.Equal(t, http.StatusOK, response.status, "unexpected http response status")
-	expectedResponse := userinfo.UserInfoDto{
-		Subject:       "101",
-		Name:          "John Doe",
-		Email:         "jsquirrel_github_9a6d@packetloss.de",
-		EmailVerified: true,
-		Groups:        []string{},
-	}
-	actualResponse := userinfo.UserInfoDto{}
-	tstParseJson(response.body, &actualResponse)
-	require.EqualValues(t, expectedResponse, actualResponse, "response did not match")
+	tstRequireUserinfoResponse(t, response, expected_response_by_token[valid_JWT_id_is_not_staff_sub101])
+
+	docs.Then("and the expected calls to the IDP have been made")
+	require.EqualValues(t, []string{"access_mock_value 101"}, idpMock.recording)
 }
 
 func TestUserinfo_Success_Admin(t *testing.T) {
@@ -49,17 +66,10 @@ func TestUserinfo_Success_Admin(t *testing.T) {
 	response := tstPerformGetWithCookies("/v1/userinfo", valid_JWT_id_is_staff_admin_sub1234567890, "access_mock_value")
 
 	docs.Then("then the request is successful and the response is as expected")
-	require.Equal(t, http.StatusOK, response.status, "unexpected http response status")
-	expectedResponse := userinfo.UserInfoDto{
-		Subject:       "1234567890",
-		Name:          "John Admin",
-		Email:         "jsquirrel_github_9a6d@packetloss.de",
-		EmailVerified: true,
-		Groups:        []string{"admin", "staff"},
-	}
-	actualResponse := userinfo.UserInfoDto{}
-	tstParseJson(response.body, &actualResponse)
-	require.EqualValues(t, expectedResponse, actualResponse, "response did not match")
+	tstRequireUserinfoResponse(t, response, expected_response_by_token[valid_JWT_id_is_staff_admin_sub1234567890])
+
+	docs.Then("and the expected calls to the IDP have been made")
+	require.EqualValues(t, []string{"access_mock_value"}, idpMock.recording)
 }
 
 func TestUserinfo_NoAccessTokenCookie(t *testing.T) {
@@ -72,6 +82,9 @@ func TestUserinfo_NoAccessTokenCookie(t *testing.T) {
 
 	docs.Then("then the request fails with the appropriate error")
 	tstRequireErrorResponse(t, response, http.StatusUnauthorized, "auth.unauthorized", "authorization failed to check out during local validation - please see logs for details")
+
+	docs.Then("and no calls to the IDP have been made")
+	require.Empty(t, idpMock.recording)
 }
 
 func TestUserinfo_InvalidAccessTokenCookie(t *testing.T) {
@@ -84,6 +97,9 @@ func TestUserinfo_InvalidAccessTokenCookie(t *testing.T) {
 
 	docs.Then("then the request fails with the appropriate error")
 	tstRequireErrorResponse(t, response, http.StatusUnauthorized, "auth.unauthorized", "identity provider rejected your token - see log for details")
+
+	docs.Then("and the expected calls to the IDP have been made")
+	require.EqualValues(t, []string{"wrong-value"}, idpMock.recording)
 }
 
 func TestUserinfo_SubjectMismatch(t *testing.T) {
@@ -96,6 +112,9 @@ func TestUserinfo_SubjectMismatch(t *testing.T) {
 
 	docs.Then("then the request fails with the appropriate error")
 	tstRequireErrorResponse(t, response, http.StatusUnauthorized, "auth.unauthorized", "identity provider rejected your token - see log for details")
+
+	docs.Then("and the expected calls to the IDP have been made")
+	require.EqualValues(t, []string{"access_mock_value"}, idpMock.recording)
 }
 
 func TestUserinfo_MissingGroup(t *testing.T) {
@@ -108,6 +127,9 @@ func TestUserinfo_MissingGroup(t *testing.T) {
 
 	docs.Then("then the request fails with the appropriate error")
 	tstRequireErrorResponse(t, response, http.StatusUnauthorized, "auth.unauthorized", "identity provider rejected your token - see log for details")
+
+	docs.Then("and the expected calls to the IDP have been made")
+	require.EqualValues(t, []string{"access_mock_value 202"}, idpMock.recording)
 }
 
 func TestUserinfo_IDPDown(t *testing.T) {
@@ -120,4 +142,14 @@ func TestUserinfo_IDPDown(t *testing.T) {
 
 	docs.Then("then the request fails with the appropriate error")
 	tstRequireErrorResponse(t, response, http.StatusBadGateway, "auth.idp.error", "identity provider could not be reached - see log for details")
+}
+
+// --- helpers
+
+func tstRequireUserinfoResponse(t *testing.T, response tstWebResponse, expectedResponse userinfo.UserInfoDto) {
+	require.Equal(t, http.StatusOK, response.status, "unexpected http response status")
+
+	actualResponse := userinfo.UserInfoDto{}
+	tstParseJson(response.body, &actualResponse)
+	require.EqualValues(t, expectedResponse, actualResponse, "response did not match")
 }
