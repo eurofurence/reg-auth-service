@@ -13,7 +13,7 @@ security:
     # roles to pass through in the userinfo endpoint (all others are filtered)
     relevant_groups:
       - admin
-    # optional, allows local validation of tokens before they are even sent to the user info endpoint
+    # optional, allows local validation of tokens before they are even sent to the user info endpoint. Not good for production performance if omitted.
     token_public_keys_PEM:
       - |
         -----BEGIN PUBLIC KEY-----
@@ -25,7 +25,7 @@ security:
         cKWTjpBP2dPwVZ4WWC+9aGVd+Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbc
         mwIDAQAB
         -----END PUBLIC KEY-----
-    # optional, if not configured, local validation is used if the key is provided.
+    # optional, if not configured, local validation is used if the key is provided. Not safe for production if omitted.
     user_info_url: 'https://my.identity.provider.example.com/user-info'
     user_info_cache_seconds: 10
     audience: 'only-allowed-audience-in-tokens'
