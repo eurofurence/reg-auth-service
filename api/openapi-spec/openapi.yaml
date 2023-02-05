@@ -203,16 +203,15 @@ paths:
         
         First, The token is locally validated, both signature and expiry are checked.
         
-        If an OIDC userinfo endpoint is configured, additionally, this endpoint is queried, and the response is
+        Then the OIDC userinfo endpoint is queried, and the response is
         compared to the locally determined values. There is a short (configurable) caching period
         to avoid bombarding the identity provider with identical requests. By default, the caching
         period is set to 30 seconds.
         
-        **Frontend:** use this (computationally cheap) endpoint to determine information about the logged in user, 
-        like prefilling their email address, or determining whether to show navigation to the admin frontend.
-        If you get a 401, redirect the user to /v1/auth.
+        **Frontend:** you should use /v1/frontend-userinfo instead, which is completely local and thus really fast and
+        computationally extremely cheap.
         
-        **Backend:** use this (computationally cheap) endpoint to ensure you really have a valid user token,
+        **Backend:** use this endpoint to ensure you really have a valid user token,
         not a forgery or one with outdated role claims (such as revoked permissions) whenever the tradeoff between
         speed and security falls on the side of making this additional online check.
 
@@ -243,6 +242,58 @@ paths:
             /v1/auth endpoint, so they can get a fresh (current) token.
             
             If you receive this response in the backend, you should NOT proceed and instead return 401 yourself.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: An unexpected error occurred. A best effort attempt is made to return details in the body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: A userinfo endpoint is configured, but the identity provider failed to respond.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/frontend-userinfo:
+    get:
+      tags:
+        - idp
+      summary: Get relevant information about the logged in user (fast version)
+      description: |-
+        Returns information about the logged in user: their assigned relevant roles, and their email address,
+        but does NOT validate this with the identity provider, instead relying on local token parsing only.
+        
+        The user is determined from the cookies set by /v1/dropoff. This endpoint allows us to
+        use a http only secure cookie, and only exposes user information actually needed by the registration 
+        system.
+        
+        The token is locally validated ONLY, both signature and expiry are checked. This is enough for the
+        frontend, because the backend needs to check it again anyway.
+        
+        **Frontend:** use this (computationally cheap) endpoint to determine information about the logged in user, 
+        like prefilling their email address, or determining whether to show navigation to the admin frontend.
+        If you get a 401, redirect the user to /v1/auth.
+        
+        **Backend:** you should use /v1/userinfo for safety reasons.
+
+      operationId: getUserInfoFrontend
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: |-
+            Authorization required - either no cookie present or the token is expired or invalid.
+            
+            If you receive this response in the frontend, you should immediately redirect the user to the 
+            /v1/auth endpoint, so they can get a fresh (current) token.
           content:
             application/json:
               schema:
