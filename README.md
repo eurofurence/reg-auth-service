@@ -60,3 +60,7 @@ They provide the local mock that receives the calls made during contract testing
 
 The userinfo endpoint only works for configured applications whose cookie name matches the
 global cookie name setting.
+
+## Open Issues and Ideas
+
+We track open issues as GitHub issues on this repository once it becomes clear what exactly needs to be done.
