@@ -27,7 +27,7 @@ var expected_response_by_token = map[string]userinfo.UserInfoDto{
 		Name:          "John Staff",
 		Email:         "jsquirrel_github_9a6d@packetloss.de",
 		EmailVerified: true,
-		Groups:        []string{"staff"},
+		Groups:        []string{},
 	},
 	valid_JWT_id_is_staff_admin_sub1234567890: {
 		Subject:       "1234567890",
@@ -51,7 +51,9 @@ func TestUserinfo_Success(t *testing.T) {
 	response := tstPerformGetWithCookies("/v1/userinfo", valid_JWT_id_is_not_staff_sub101, "access_mock_value 101")
 
 	docs.Then("then the request is successful and the response is as expected")
-	tstRequireUserinfoResponse(t, response, expected_response_by_token[valid_JWT_id_is_not_staff_sub101])
+	expected := expected_response_by_token[valid_JWT_id_is_not_staff_sub101]
+	expected.Audiences = []string{"12345-123"}
+	tstRequireUserinfoResponse(t, response, expected)
 
 	docs.Then("and the expected calls to the IDP have been made")
 	require.EqualValues(t, []string{"access_mock_value 101"}, idpMock.recording)
@@ -66,7 +68,9 @@ func TestUserinfo_Success_Admin(t *testing.T) {
 	response := tstPerformGetWithCookies("/v1/userinfo", valid_JWT_id_is_staff_admin_sub1234567890, "access_mock_value")
 
 	docs.Then("then the request is successful and the response is as expected")
-	tstRequireUserinfoResponse(t, response, expected_response_by_token[valid_JWT_id_is_staff_admin_sub1234567890])
+	expected := expected_response_by_token[valid_JWT_id_is_staff_admin_sub1234567890]
+	expected.Audiences = []string{"12345-123"}
+	tstRequireUserinfoResponse(t, response, expected)
 
 	docs.Then("and the expected calls to the IDP have been made")
 	require.EqualValues(t, []string{"access_mock_value"}, idpMock.recording)
@@ -110,8 +114,10 @@ func TestUserinfo_SubjectMismatch(t *testing.T) {
 	docs.When("when a logged in user calls the userinfo endpoint with a valid token with a different subject")
 	response := tstPerformGetWithCookies("/v1/userinfo", valid_JWT_id_is_staff_sub202, "access_mock_value")
 
-	docs.Then("then the request fails with the appropriate error")
-	tstRequireErrorResponse(t, response, http.StatusUnauthorized, "auth.unauthorized", "identity provider rejected your token - see log for details")
+	docs.Then("then the request is successful and the information provided by the idp is returned")
+	expected := expected_response_by_token[valid_JWT_id_is_staff_admin_sub1234567890]
+	expected.Audiences = []string{"12345-123"}
+	tstRequireUserinfoResponse(t, response, expected)
 
 	docs.Then("and the expected calls to the IDP have been made")
 	require.EqualValues(t, []string{"access_mock_value"}, idpMock.recording)
@@ -125,8 +131,10 @@ func TestUserinfo_MissingGroup(t *testing.T) {
 	docs.When("when a logged in user calls the userinfo endpoint with a valid token with an extra relevant group (staff) that the idp does not confirm")
 	response := tstPerformGetWithCookies("/v1/userinfo", valid_JWT_id_is_staff_sub202, "access_mock_value 202") // does not return staff group
 
-	docs.Then("then the request fails with the appropriate error")
-	tstRequireErrorResponse(t, response, http.StatusUnauthorized, "auth.unauthorized", "identity provider rejected your token - see log for details")
+	docs.Then("then the request is successful and the list of groups does NOT include the extra group")
+	expected := expected_response_by_token[valid_JWT_id_is_staff_sub202]
+	expected.Audiences = []string{"12345-123"}
+	tstRequireUserinfoResponse(t, response, expected)
 
 	docs.Then("and the expected calls to the IDP have been made")
 	require.EqualValues(t, []string{"access_mock_value 202"}, idpMock.recording)

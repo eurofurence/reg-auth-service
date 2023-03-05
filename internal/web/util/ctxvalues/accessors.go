@@ -12,6 +12,7 @@ const ContextRequestId = "requestid"
 const ContextIdToken = "idtoken"
 const ContextAccessToken = "accesstoken"
 const ContextAuthorizedAs = "authorizedas"
+const ContextAudience = "audience"
 const ContextEmail = "email"
 const ContextEmailVerified = "emailverified"
 const ContextName = "name"
@@ -77,6 +78,14 @@ func Email(ctx context.Context) string {
 
 func SetEmail(ctx context.Context, email string) {
 	setValue(ctx, ContextEmail, email)
+}
+
+func Audience(ctx context.Context) string {
+	return valueOrDefault(ctx, ContextAudience, "")
+}
+
+func SetAudience(ctx context.Context, audience string) {
+	setValue(ctx, ContextAudience, audience)
 }
 
 func EmailVerified(ctx context.Context) bool {
