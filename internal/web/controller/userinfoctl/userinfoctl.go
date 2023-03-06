@@ -111,6 +111,11 @@ func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 		Subject:       idpUserinfo.Subject,
 	}
 
+	// TODO if IDP's userinfo does not respond with an audience list, we just have to assume it's correct
+	if len(idpUserinfo.Audience) == 0 {
+		response.Audiences = []string{config.OidcAllowedAudience()}
+	}
+
 	for _, group := range config.RelevantGroups() {
 		for _, idpGroup := range idpUserinfo.Groups {
 			if idpGroup == group {
