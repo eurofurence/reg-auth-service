@@ -99,6 +99,7 @@ func checkIdToken_MustReturnOnError(ctx context.Context, idTokenValue string) (s
 						}
 					}
 
+					ctxvalues.SetAudience(ctx, config.OidcAllowedAudience())
 					ctxvalues.SetIdToken(ctx, idTokenValue)
 					ctxvalues.SetEmail(ctx, parsedClaims.Email)
 					ctxvalues.SetEmailVerified(ctx, parsedClaims.EmailVerified)

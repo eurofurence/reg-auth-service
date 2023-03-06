@@ -369,6 +369,12 @@ components:
         - email_verified
         - groups
       properties:
+        audiences:
+          type: array
+          description: The audiences that the token was issued for.
+          items:
+            type: string
+            example: "123456-123"
         subject:
           type: string
           description: The internal user id of the identity provider (aka the "subject").

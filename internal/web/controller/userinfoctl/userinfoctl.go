@@ -51,6 +51,10 @@ func localUserinfoHelper(ctx context.Context, w http.ResponseWriter, r *http.Req
 		Subject:       ctxvalues.Subject(ctx),
 	}
 
+	if ctxvalues.Audience(ctx) != "" {
+		response.Audiences = []string{ctxvalues.Audience(ctx)}
+	}
+
 	for _, group := range config.RelevantGroups() {
 		if ctxvalues.IsAuthorizedAsGroup(ctx, group) {
 			response.Groups = append(response.Groups, group)
@@ -63,18 +67,24 @@ func localUserinfoHelper(ctx context.Context, w http.ResponseWriter, r *http.Req
 func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	response, err := localUserinfoHelper(ctx, w, r)
-	if err != nil {
-		// unauthenticatedError sent already
-		return
-	}
-
 	if config.OidcUserInfoURL() == "" {
+		response, err := localUserinfoHelper(ctx, w, r)
+		if err != nil {
+			// unauthenticatedError sent already
+			return
+		}
+
 		// we must accept the token info, or local testing won't work
 		aulogging.Logger.Ctx(ctx).Warn().Print("skipping token validation with IDP and taking info from token - this is not safe for production!")
 		w.Header().Add(headers.ContentType, media.ContentTypeApplicationJson)
 		w.WriteHeader(http.StatusOK)
 		writeJson(ctx, w, response)
+		return
+	}
+
+	// ensure we have an access token at all
+	if ctxvalues.AccessToken(ctx) == "" {
+		unauthenticatedError(ctx, w, r, "you did not provide a valid access token - see log for details", "no valid access token in context - check logs above for validation errors")
 		return
 	}
 
@@ -91,27 +101,22 @@ func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 		idpDownstreamError(ctx, w, r, "identity provider returned error status - see log for details", fmt.Sprintf("idp returned error status %d", status))
 		return
 	}
-	if idpUserinfo.Subject != response.Subject {
-		unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("idp returned different subject %s instead of %s", idpUserinfo.Subject, response.Subject))
-		return
+
+	response := userinfo.UserInfoDto{
+		Audiences:     idpUserinfo.Audience,
+		Email:         idpUserinfo.Email,
+		EmailVerified: idpUserinfo.EmailVerified,
+		Groups:        []string{},
+		Name:          idpUserinfo.Name,
+		Subject:       idpUserinfo.Subject,
 	}
 
-	for _, group := range response.Groups {
-		groupGivenInIdp := false
+	for _, group := range config.RelevantGroups() {
 		for _, idpGroup := range idpUserinfo.Groups {
 			if idpGroup == group {
-				groupGivenInIdp = true
+				response.Groups = append(response.Groups, group)
 			}
 		}
-		if !groupGivenInIdp {
-			unauthenticatedError(ctx, w, r, "identity provider rejected your token - see log for details", fmt.Sprintf("group %s not assigned to subject %s according to idp", group, idpUserinfo.Subject))
-			return
-		}
-	}
-
-	if idpUserinfo.Email != response.Email {
-		unauthenticatedError(ctx, w, r, "identity provider rejected your token - email mismatch, please re-authenticate", fmt.Sprintf("subject %s email mismatch", idpUserinfo.Subject))
-		return
 	}
 
 	w.Header().Add(headers.ContentType, media.ContentTypeApplicationJson)

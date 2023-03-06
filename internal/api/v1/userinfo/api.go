@@ -1,6 +1,7 @@
 package userinfo
 
 type UserInfoDto struct {
+	Audiences     []string `json:"audiences"`
 	Subject       string   `json:"subject"`
 	Name          string   `json:"name"`
 	Email         string   `json:"email"`
