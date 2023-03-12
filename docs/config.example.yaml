@@ -10,9 +10,13 @@ security:
     id_token_cookie_name: 'JWT'
     # used for creating and parsing the access token cookie (used by userinfo endpoint only)
     access_token_cookie_name: 'AUTH'
-    # roles to pass through in the userinfo endpoint (all others are filtered)
+    # groups to pass through in the userinfo endpoint (all others are filtered)
+    # each group can be limited to an explicit list of subject ids that are allowed to have the group
+    # (otherwise the userinfo endpoint won't list it)
     relevant_groups:
-      - admin
+      admin:
+        - '123456789'
+      earlyReg: []
     # optional, allows local validation of tokens before they are even sent to the user info endpoint. Not good for production performance if omitted.
     token_public_keys_PEM:
       - |
