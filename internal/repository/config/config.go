@@ -110,6 +110,6 @@ func OidcUserInfoCacheEnabled() bool {
 		configuration().Security.Oidc.AccessTokenCookieName != ""
 }
 
-func RelevantGroups() []string {
+func RelevantGroups() map[string][]string {
 	return configuration().Security.Oidc.RelevantGroups
 }

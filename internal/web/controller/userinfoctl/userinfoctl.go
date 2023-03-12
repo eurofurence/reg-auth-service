@@ -16,6 +16,7 @@ import (
 	"github.com/go-http-utils/headers"
 	"net/http"
 	"net/url"
+	"sort"
 	"time"
 )
 
@@ -29,7 +30,35 @@ func Create(server chi.Router, idpClient idp.IdentityProviderClient) {
 	server.Get("/v1/frontend-userinfo", frontendUserinfoHandler)
 }
 
-// localUserinfoHelper is the common part of both handlers.
+func filterRelevantAndAllowlistedGroups(groupsBeforeFiltering []string, userSubject string) []string {
+	result := make([]string, 0)
+	relevantGroupsConfig := config.RelevantGroups()
+
+	for _, group := range groupsBeforeFiltering {
+		allowlistedSubjects, relevant := relevantGroupsConfig[group]
+		if relevant {
+			if len(allowlistedSubjects) > 0 {
+				// locally limit group to listed subjects
+				for _, allowedSubject := range allowlistedSubjects {
+					if allowedSubject == userSubject {
+						result = append(result, group)
+					}
+				}
+			} else {
+				// no local subject limitation on group
+				result = append(result, group)
+			}
+		}
+	}
+
+	sort.Strings(result)
+
+	return result
+}
+
+// localUserinfoHelper is the common part of both userinfo handlers, but used for local validation only
+//
+// if an OpenID connect userinfo endpoint is configured, this is not used in the full userinfo endpoint
 func localUserinfoHelper(ctx context.Context, w http.ResponseWriter, r *http.Request) (userinfo.UserInfoDto, error) {
 	// ensure we have a valid id token
 	if ctxvalues.IdToken(ctx) == "" {
@@ -46,7 +75,6 @@ func localUserinfoHelper(ctx context.Context, w http.ResponseWriter, r *http.Req
 	response := userinfo.UserInfoDto{
 		Email:         ctxvalues.Email(ctx),
 		EmailVerified: ctxvalues.EmailVerified(ctx),
-		Groups:        []string{},
 		Name:          ctxvalues.Name(ctx),
 		Subject:       ctxvalues.Subject(ctx),
 	}
@@ -55,11 +83,13 @@ func localUserinfoHelper(ctx context.Context, w http.ResponseWriter, r *http.Req
 		response.Audiences = []string{ctxvalues.Audience(ctx)}
 	}
 
-	for _, group := range config.RelevantGroups() {
+	unfilteredGroups := []string{}
+	for group, _ := range config.RelevantGroups() {
 		if ctxvalues.IsAuthorizedAsGroup(ctx, group) {
-			response.Groups = append(response.Groups, group)
+			unfilteredGroups = append(unfilteredGroups, group)
 		}
 	}
+	response.Groups = filterRelevantAndAllowlistedGroups(unfilteredGroups, response.Subject)
 
 	return response, nil
 }
@@ -106,7 +136,6 @@ func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 		Audiences:     idpUserinfo.Audience,
 		Email:         idpUserinfo.Email,
 		EmailVerified: idpUserinfo.EmailVerified,
-		Groups:        []string{},
 		Name:          idpUserinfo.Name,
 		Subject:       idpUserinfo.Subject,
 	}
@@ -116,13 +145,7 @@ func userinfoHandler(w http.ResponseWriter, r *http.Request) {
 		response.Audiences = []string{config.OidcAllowedAudience()}
 	}
 
-	for _, group := range config.RelevantGroups() {
-		for _, idpGroup := range idpUserinfo.Groups {
-			if idpGroup == group {
-				response.Groups = append(response.Groups, group)
-			}
-		}
-	}
+	response.Groups = filterRelevantAndAllowlistedGroups(idpUserinfo.Groups, idpUserinfo.Subject)
 
 	w.Header().Add(headers.ContentType, media.ContentTypeApplicationJson)
 	w.WriteHeader(http.StatusOK)

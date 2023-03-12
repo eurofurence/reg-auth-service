@@ -8,8 +8,9 @@ security:
     id_token_cookie_name: 'JWT'
     access_token_cookie_name: 'AUTH'
     relevant_groups:
-      - admin
-      - staff
+      admin:
+        - '1234567890'
+      staff: []
     token_public_keys_PEM:
       - |
         -----BEGIN PUBLIC KEY-----

@@ -14,6 +14,8 @@ const valid_JWT_id_is_staff_sub202 = `eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhd
 
 const valid_JWT_id_is_staff_admin_sub1234567890 = `eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdF9oYXNoIjoidDdWYkV5NVQ3STdYSlh3VHZ4S3hLdyIsImF1ZCI6WyIxNGQ5ZjM3YS0xZWVjLTQ3YzktYTk0OS01ZjFlYmRmOWM4ZTUiXSwiYXV0aF90aW1lIjoxNTE2MjM5MDIyLCJlbWFpbCI6ImpzcXVpcnJlbF9naXRodWJfOWE2ZEBwYWNrZXRsb3NzLmRlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImV4cCI6MjA3NTEyMDgxNiwiZ3JvdXBzIjpbInN0YWZmIiwiYWRtaW4iXSwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJodHRwOi8vaWRlbnRpdHkubG9jYWxob3N0LyIsImp0aSI6IjQwNmJlM2U0LWY0ZTktNDdiNy1hYzVmLTA2YjkyNzQzMjg0OCIsIm5hbWUiOiJKb2huIEFkbWluIiwibm9uY2UiOiIzMGM4M2MxM2M5MTc5ODA0YWEwZjliMzkzNDI1OWQ3NSIsInJhdCI6MTY3NTExNzE3Nywic2lkIjoiZDdiOGZlN2EtMDc5YS00NTk2LThlNTMtYTYwZjg2YTA4YWM2Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.DRKPy0Rq-r5-Va6W5coT91JpDV2RkhYjniqIJmmPzOq3LphzRrlDKioDns4ilMxMEpfhFcmv87yOdPsPijUhEqy1a93BeJYMyU7DMdQBtD8R9oYU_-FmqS5dM9ZrBCZZUxTBeNBl2JGI-H1_IIqUH65PodoijO4N5ayw43q5xT1KP7PJKZ9YiMSsa4tUOp0R_Ay51DTIuti21TqqbSCC66sGH_1e1eeuhwBoU7Iws4oeepTRZ_XOdpn_YzTViPs7Byua-zohYgQYthDoCvLVfJOr77BV2vTUrQZfRca7prizXbVuQyxQJEpOBIuke29Gye6Qfbwpb4rMaza3fTLhZg`
 
+const valid_JWT_id_is_staff_false_admin_sub444 = `eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdF9oYXNoIjoidDdWYkV5NVQ3STdYSlh3VHZ4S3hLdyIsImF1ZCI6WyIxNGQ5ZjM3YS0xZWVjLTQ3YzktYTk0OS01ZjFlYmRmOWM4ZTUiXSwiYXV0aF90aW1lIjoxNTE2MjM5MDIyLCJlbWFpbCI6ImpzcXVpcnJlbF9naXRodWJfOWE2ZEBwYWNrZXRsb3NzLmRlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImV4cCI6MjA3NTEyMDgxNiwiZ3JvdXBzIjpbInN0YWZmIiwiYWRtaW4iXSwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJodHRwOi8vaWRlbnRpdHkubG9jYWxob3N0LyIsImp0aSI6IjQwNmJlM2U0LWY0ZTktNDdiNy1hYzVmLTA2YjkyNzQzMjg0OCIsIm5hbWUiOiJKb2huIEFkbWluIiwibm9uY2UiOiIzMGM4M2MxM2M5MTc5ODA0YWEwZjliMzkzNDI1OWQ3NSIsInJhdCI6MTY3NTExNzE3Nywic2lkIjoiZDdiOGZlN2EtMDc5YS00NTk2LThlNTMtYTYwZjg2YTA4YWM2Iiwic3ViIjoiNDQ0In0.OmaIci2qTjz824oTxBzVA9TTgr7eN-RSFdvydyAmyu7TkddjUVu3CbTNm0JSL2Jtow2fkirXe9mxxN0qlmTKUMxtblCFBeLFYHiFakib3L3o7ooOaIqSjux_4-wOv5Z1-tLgE7Vp-DKLsNswPCS6urtCFyWlY1dvFXKrWYTbYfORg_HXQzj4oTVg2jxhhRfjMcisyoZJts1Znxn8Mi7_qwK5sVmmN60CiBhGw-Y36tZBKPiEWMML4oApq83r5JBZcTLNUMkWu0VRi6r8wjHnQw1-qAwmmGj44TJcStQy5vSTlqVRpy7DjsCEn7iEmQTH7Ah52oaHD22WYgZdiFpl7g`
+
 var expected_response_by_token = map[string]userinfo.UserInfoDto{
 	valid_JWT_id_is_not_staff_sub101: {
 		Subject:       "101",
@@ -35,6 +37,13 @@ var expected_response_by_token = map[string]userinfo.UserInfoDto{
 		Email:         "jsquirrel_github_9a6d@packetloss.de",
 		EmailVerified: true,
 		Groups:        []string{"admin", "staff"},
+	},
+	valid_JWT_id_is_staff_false_admin_sub444: {
+		Subject:       "444",
+		Name:          "John False Admin",
+		Email:         "jsquirrel_github_9a6d@packetloss.de",
+		EmailVerified: true,
+		Groups:        []string{"staff"}, // not admin because subject not in allowlist
 	},
 }
 
@@ -138,6 +147,23 @@ func TestUserinfo_MissingGroup(t *testing.T) {
 
 	docs.Then("and the expected calls to the IDP have been made")
 	require.EqualValues(t, []string{"access_mock_value 202"}, idpMock.recording)
+}
+
+func TestUserinfo_WrongSubjectForGroup(t *testing.T) {
+	docs.Given("given the standard test configuration")
+	tstSetup(tstDefaultConfigFile)
+	defer tstShutdown()
+
+	docs.When("when a logged in user calls the userinfo endpoint with a valid token with an extra relevant group (admin) for which the user isn't in the allowlist")
+	response := tstPerformGetWithCookies("/v1/userinfo", valid_JWT_id_is_staff_false_admin_sub444, "access_mock_value 444")
+
+	docs.Then("then the request is successful and the list of groups does NOT include the extra group")
+	expected := expected_response_by_token[valid_JWT_id_is_staff_false_admin_sub444]
+	expected.Audiences = []string{"12345-123"}
+	tstRequireUserinfoResponse(t, response, expected)
+
+	docs.Then("and the expected calls to the IDP have been made")
+	require.EqualValues(t, []string{"access_mock_value 444"}, idpMock.recording)
 }
 
 func TestUserinfo_IDPDown(t *testing.T) {

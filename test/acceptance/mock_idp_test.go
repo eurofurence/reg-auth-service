@@ -51,6 +51,15 @@ func (m *mockIDPClient) UserInfo(ctx context.Context) (*idp.UserinfoData, int, e
 			Name:          "John Staff",
 			Groups:        []string{"comedian", "somethingelse"}, // not staff!
 		}
+	} else if token == "access_mock_value 444" {
+		ret = idp.UserinfoData{
+			Audience:      []string{"12345-123"},
+			Subject:       "444", // subject not listed in subject allowlist
+			Email:         "jsquirrel_github_9a6d@packetloss.de",
+			EmailVerified: true,
+			Name:          "John False Admin",
+			Groups:        []string{"staff", "admin"},
+		}
 	} else {
 		ret = idp.UserinfoData{
 			Audience:      []string{"12345-123"},
