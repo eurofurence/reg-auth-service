@@ -29,10 +29,31 @@ type UserinfoData struct {
 	Subject       string   `json:"sub"` //
 }
 
-type UserinfoResponseDto struct {
-	Data UserinfoData `json:"data"`
+type TokenIntrospectionData struct {
+	Active    bool     `json:"active"`
+	Scope     string   `json:"scope"`
+	ClientId  string   `json:"client_id"`
+	Sub       string   `json:"sub"`
+	Exp       int64    `json:"exp"`
+	Iat       int64    `json:"iat"`
+	Nbf       int64    `json:"nbf"`
+	Aud       []string `json:"aud"`
+	Iss       string   `json:"iss"`
+	TokenType string   `json:"token_type"`
+	TokenUse  string   `json:"token_use"`
 
 	// in case of error, you get these fields instead
+	ErrorMessage string              `json:"message"`
+	Errors       map[string][]string `json:"errors"`
+}
+
+type UserinfoResponseDto struct {
+	UserinfoData
+
+	// TODO temporarily retain old version
+	Data UserinfoData `json:"data"`
+
+	// in case of error, you get these fields instead (old version)
 	ErrorCode        string `json:"error"`
 	ErrorDescription string `json:"error_description"`
 }
@@ -41,4 +62,6 @@ type IdentityProviderClient interface {
 	TokenWithAuthenticationCodeAndPKCE(ctx context.Context, applicationConfigName string, authorizationCode string, pkceVerifier string) (*TokenResponseDto, int, error)
 
 	UserInfo(ctx context.Context) (*UserinfoData, int, error)
+
+	TokenIntrospection(ctx context.Context) (*TokenIntrospectionData, int, error)
 }

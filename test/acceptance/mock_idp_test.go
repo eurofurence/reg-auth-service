@@ -72,3 +72,9 @@ func (m *mockIDPClient) UserInfo(ctx context.Context) (*idp.UserinfoData, int, e
 	}
 	return &ret, http.StatusOK, nil
 }
+
+func (m *mockIDPClient) TokenIntrospection(ctx context.Context) (*idp.TokenIntrospectionData, int, error) {
+	ret := idp.TokenIntrospectionData{}
+	// TODO implement
+	return &ret, http.StatusOK, nil
+}

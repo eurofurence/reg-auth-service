@@ -41,6 +41,7 @@ type (
 		RelevantGroups        map[string][]string `yaml:"relevant_groups"`          // key is IDP group id, value is list of allowed subjects (all allowed if value is empty list)
 		TokenPublicKeysPEM    []string            `yaml:"token_public_keys_PEM"`    // a list of public RSA keys in PEM format, see https://github.com/Jumpy-Squirrel/jwks2pem for obtaining PEM from openid keyset endpoint
 		UserInfoURL           string              `yaml:"user_info_url"`            // validation of admin accesses uses this endpoint to verify the token is still current and access has not been recently revoked
+		TokenIntrospectionURL string              `yaml:"token_introspection_url"`  // validation of tokens uses this endpoint to obtain scopes and audiences
 		UserInfoCacheSeconds  int                 `yaml:"user_info_cache_seconds"`  // leave at 0 to disable caching
 		Audience              string              `yaml:"audience"`
 		Issuer                string              `yaml:"issuer"`

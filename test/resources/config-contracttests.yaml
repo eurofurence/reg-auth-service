@@ -6,6 +6,7 @@ server:
 security:
   oidc:
     user_info_url: http://localhost:{{ .pactPort }}/userinfo
+    token_introspection_url: http://localhost:{{ .pactPort }}/token-introspection
   cors:
     disable: false
 identity_provider:
