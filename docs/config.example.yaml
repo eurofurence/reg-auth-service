@@ -31,6 +31,8 @@ security:
         -----END PUBLIC KEY-----
     # optional, if not configured, local validation is used if the key is provided. Not safe for production if omitted.
     user_info_url: 'https://my.identity.provider.example.com/user-info'
+    # optional, if not configured, audience check is potentially skipped. Not recommended for production to omit this.
+    token_introspection_url: 'https://my.identity.provider.example.com/token-introspection'
     user_info_cache_seconds: 10
     audience: 'only-allowed-audience-in-tokens'
     issuer: 'only-allowed-issuer-in-tokens'
