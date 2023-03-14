@@ -49,6 +49,16 @@
           "Content-Type": "application/json"
         },
         "body": {
+          "aud": null,
+          "auth_time": 0,
+          "email": "",
+          "email_verified": false,
+          "name": "",
+          "groups": null,
+          "iss": "",
+          "iat": 0,
+          "rat": 0,
+          "sub": "",
           "data": {
             "aud": [
               "123897612987-12987-12389"
@@ -68,6 +78,74 @@
           },
           "error": "",
           "error_description": ""
+        }
+      }
+    },
+    {
+      "description": "a userinfo request (new version without data)",
+      "providerState": "a user is logged in",
+      "request": {
+        "method": "GET",
+        "path": "/userinfo",
+        "headers": {
+          "Authorization": "Bearer ZYX"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "aud": [
+            "123897612987-12987-12389"
+          ],
+          "auth_time": 0,
+          "email": "me@example.com",
+          "email_verified": true,
+          "name": "me",
+          "groups": [
+            "comedian",
+            "fursuiter"
+          ],
+          "iss": "",
+          "iat": 0,
+          "rat": 0,
+          "sub": "1234567"
+        }
+      }
+    },
+    {
+      "description": "a token introspection request",
+      "providerState": "a user is logged in",
+      "request": {
+        "method": "GET",
+        "path": "/token-introspection",
+        "headers": {
+          "Authorization": "Bearer ZYX"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "active": true,
+          "scope": "offline_access offline openid profile email groups groups.read groups.write groups.delete",
+          "client_id": "2c0a8861-8097-42a5-ba7e-34c00f7a640b",
+          "sub": "R1243MK1W5XWJ680",
+          "exp": 1678672221,
+          "iat": 1678668621,
+          "nbf": 1678668621,
+          "aud": [
+            "123897612987-12987-12389"
+          ],
+          "iss": "http://identity.eurofurence.localhost/",
+          "token_type": "Bearer",
+          "token_use": "access_token",
+          "message": "",
+          "errors": null
         }
       }
     }

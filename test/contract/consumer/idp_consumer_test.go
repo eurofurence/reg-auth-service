@@ -50,6 +50,20 @@ func TestConsumer(t *testing.T) {
 		Groups:        []string{"comedian", "fursuiter"},
 	}
 
+	tstExpectedTokenIntrospectionResponse := idp.TokenIntrospectionData{
+		Active:    true,
+		Scope:     "offline_access offline openid profile email groups groups.read groups.write groups.delete",
+		ClientId:  "2c0a8861-8097-42a5-ba7e-34c00f7a640b",
+		Sub:       "R1243MK1W5XWJ680",
+		Exp:       1678672221,
+		Iat:       1678668621,
+		Nbf:       1678668621,
+		Aud:       []string{"123897612987-12987-12389"},
+		Iss:       "http://identity.eurofurence.localhost/",
+		TokenType: "Bearer",
+		TokenUse:  "access_token",
+	}
+
 	// Pass in test case (consumer side)
 	// This uses the repository on the consumer side to make the http call, should be as low level as possible
 	var test = func() (err error) {
@@ -70,7 +84,16 @@ func TestConsumer(t *testing.T) {
 		ctxvalues.SetAccessToken(ctx, actualResponse.AccessToken)
 		actualUserInfoResponse, httpstatus, err := client.UserInfo(ctx)
 		require.Equal(t, http.StatusOK, httpstatus)
-		require.EqualValues(t, tstExpectedUserInfoResponse, *actualUserInfoResponse, "user info response did not match")
+		require.EqualValues(t, tstExpectedUserInfoResponse, *actualUserInfoResponse, "user info response (old version) did not match")
+
+		ctxvalues.SetAccessToken(ctx, "ZYX")
+		actualUserInfoResponse2, httpstatus, err := client.UserInfo(ctx)
+		require.Equal(t, http.StatusOK, httpstatus)
+		require.EqualValues(t, tstExpectedUserInfoResponse, *actualUserInfoResponse2, "user info response (new version) did not match")
+
+		actualIntrospectionResponse, httpstatus, err := client.TokenIntrospection(ctx)
+		require.Equal(t, http.StatusOK, httpstatus)
+		require.EqualValues(t, tstExpectedTokenIntrospectionResponse, *actualIntrospectionResponse, "token introspection response did not match")
 
 		return nil
 	}
@@ -113,6 +136,40 @@ func TestConsumer(t *testing.T) {
 			Body: idp.UserinfoResponseDto{
 				Data: tstExpectedUserInfoResponse,
 			},
+		})
+	pact.
+		AddInteraction().
+		Given("a user is logged in").
+		UponReceiving("a userinfo request (new version without data)").
+		WithRequest(dsl.Request{
+			Method: http.MethodGet,
+			Path:   dsl.String("/userinfo"),
+			Headers: dsl.MapMatcher{
+				headers.Authorization: dsl.String("Bearer ZYX"),
+			},
+			Body: nil,
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  200,
+			Headers: dsl.MapMatcher{headers.ContentType: dsl.String(media.ContentTypeApplicationJson)},
+			Body:    tstExpectedUserInfoResponse,
+		})
+	pact.
+		AddInteraction().
+		Given("a user is logged in").
+		UponReceiving("a token introspection request").
+		WithRequest(dsl.Request{
+			Method: http.MethodGet,
+			Path:   dsl.String("/token-introspection"),
+			Headers: dsl.MapMatcher{
+				headers.Authorization: dsl.String("Bearer ZYX"),
+			},
+			Body: nil,
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  200,
+			Headers: dsl.MapMatcher{headers.ContentType: dsl.String(media.ContentTypeApplicationJson)},
+			Body:    tstExpectedTokenIntrospectionResponse,
 		})
 
 	// Run the test, verify it did what we expected and capture the contract (writes a test log to logs/pact.log)

@@ -46,8 +46,11 @@ func cacheKeyFunction(ctx context.Context, method string, requestUrl string, req
 
 // requestManipulator inserts Authorization when we are calling the userinfo endpoint
 func requestManipulator(ctx context.Context, r *http.Request) {
-	if r.Method == http.MethodGet && r.URL.String() == config.OidcUserInfoURL() {
-		r.Header.Set(headers.Authorization, "Bearer "+ctxvalues.AccessToken(ctx))
+	if r.Method == http.MethodGet {
+		urlStr := r.URL.String()
+		if urlStr != "" && (urlStr == config.OidcUserInfoURL() || urlStr == config.OidcTokenIntrospectionURL()) {
+			r.Header.Set(headers.Authorization, "Bearer "+ctxvalues.AccessToken(ctx))
+		}
 	}
 }
 
@@ -152,5 +155,40 @@ func (i *IdentityProviderClientImpl) UserInfo(ctx context.Context) (*UserinfoDat
 		}
 	}
 
-	return &bodyDto.Data, response.Status, nil
+	if bodyDto.Data.Subject != "" {
+		// got old response
+		return &bodyDto.Data, response.Status, nil
+	}
+
+	return &bodyDto.UserinfoData, response.Status, nil
+}
+
+func (i *IdentityProviderClientImpl) TokenIntrospection(ctx context.Context) (*TokenIntrospectionData, int, error) {
+	tokenIntrospectionEndpoint := config.OidcTokenIntrospectionURL()
+	bodyDto := TokenIntrospectionData{}
+	response := aurestclientapi.ParsedResponse{
+		Body: &bodyDto,
+	}
+	err := i.client.Perform(ctx, http.MethodGet, tokenIntrospectionEndpoint, nil, &response)
+
+	if err != nil {
+		aulogging.Logger.Ctx(ctx).Error().WithErr(err).Printf("error requesting user info from identity provider: error from response is %s:%v, local error is %s", bodyDto.ErrorMessage, bodyDto.Errors, err.Error())
+		return nil, http.StatusBadGateway, err
+	}
+	if bodyDto.ErrorMessage != "" || len(bodyDto.Errors) > 0 {
+		aulogging.Logger.Ctx(ctx).Error().Printf("received an error response from identity provider: error from response is %s:%v", bodyDto.ErrorMessage, bodyDto.Errors)
+	}
+	if response.Status != http.StatusOK && response.Status != http.StatusUnauthorized && response.Status != http.StatusForbidden {
+		err = fmt.Errorf("unexpected http status %d, was expecting 200, 401, or 403", response.Status)
+		aulogging.Logger.Ctx(ctx).Error().Printf("error requesting user info from identity provider: error from response is %s:%v, local error is %s", bodyDto.ErrorMessage, bodyDto.Errors, err.Error())
+		return nil, response.Status, err
+	}
+	if response.Status == http.StatusOK {
+		if bodyDto.ErrorMessage != "" || len(bodyDto.Errors) > 0 {
+			err = fmt.Errorf("received an error response from identity provider: error from response is %s:%v", bodyDto.ErrorMessage, bodyDto.Errors)
+			return nil, response.Status, err
+		}
+	}
+
+	return &bodyDto, response.Status, nil
 }

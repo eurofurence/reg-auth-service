@@ -100,6 +100,10 @@ func OidcUserInfoURL() string {
 	return configuration().Security.Oidc.UserInfoURL
 }
 
+func OidcTokenIntrospectionURL() string {
+	return configuration().Security.Oidc.TokenIntrospectionURL
+}
+
 func OidcUserInfoCacheRetentionTime() time.Duration {
 	return time.Duration(configuration().Security.Oidc.UserInfoCacheSeconds) * time.Second
 }
