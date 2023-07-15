@@ -1,0 +1,60 @@
+name: Create and publish Docker image
+
+on:
+  push:
+    branches:
+      - 'issue-53-docker-build'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+# you get some default environment variables
+# https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+# GITHUB_REF refs/heads/<branch> or refs/pull/<pr_number>/merge or refs/tags/<tag>
+# GITHUB_REPOSITORY	The owner and repository name. For example, octocat/Hello-World.
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Debugging
+        run: >
+          echo actor="$USERNAME" &&
+          echo registry="$REGISTRY" &&
+          echo image_name="$IMAGE_NAME" &&
+          echo ref="$GITHUB_REF_NAME" &&
+          echo repo="$GITHUB_REPOSITORY" &&
+          echo commit="$GITHUB_SHA"
+        shell: bash
+        env:
+          USERNAME: ${{ github.actor }}
+
+      - name: Checkout repository
+        run: 'git clone -b "$GITHUB_REF_NAME" --depth 1 "https://github.com/$GITHUB_REPOSITORY" app'
+        shell: bash
+
+      - name: Log in to the Container registry
+        run: 'echo "$CR_PAT" | docker login "$REGISTRY" -u "$USERNAME" --password-stdin'
+        shell: bash
+        env:
+          USERNAME: ${{ github.actor }}
+          CR_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker build and push image
+        run: >
+          cd app &&
+          docker build 
+          --label org.opencontainers.image.url="https://github.com/$GITHUB_REPOSITORY"
+          --label org.opencontainers.image.revision="$GITHUB_SHA"
+          --tag "$REGISTRY/$IMAGE_NAME:$TAG"
+          --pull
+          . &&
+          docker push "$REGISTRY/$IMAGE_NAME:$TAG"
+        shell: bash
+        env:
+          TAG: 'latest' # TODO derive from branch or ref
