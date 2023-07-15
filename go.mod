@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/StephanHCB/go-autumn-logging v0.3.0
 	github.com/StephanHCB/go-autumn-logging-zerolog v0.5.0
-	github.com/StephanHCB/go-autumn-restclient v0.5.0
+	github.com/StephanHCB/go-autumn-restclient v0.6.0
 	github.com/StephanHCB/go-autumn-restclient-circuitbreaker v0.4.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
@@ -25,7 +25,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
-	github.com/tidwall/tinylru v1.1.0 // indirect
+	github.com/tidwall/tinylru v1.2.1 // indirect
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
