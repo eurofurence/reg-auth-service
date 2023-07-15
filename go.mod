@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/StephanHCB/go-autumn-logging v0.3.0
-	github.com/StephanHCB/go-autumn-logging-zerolog v0.4.0
+	github.com/StephanHCB/go-autumn-logging-zerolog v0.5.0
 	github.com/StephanHCB/go-autumn-restclient v0.5.0
 	github.com/StephanHCB/go-autumn-restclient-circuitbreaker v0.4.1
 	github.com/go-chi/chi/v5 v5.0.10
