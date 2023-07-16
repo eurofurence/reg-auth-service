@@ -3,16 +3,14 @@ name: Create and publish Docker image
 on:
   push:
     branches:
-      - 'issue-53-docker-build'
-
-# a comment we can change again
+      - 'main'
 
 jobs:
   call_build-and-push-image:
     permissions:
       contents: read
       packages: write
-    uses: eurofurence/reg-workflows/.github/workflows/docker-build-push.yml@1-add-docker-build-workflow
+    uses: eurofurence/reg-workflows/.github/workflows/docker-build-push.yml@main
     with:
       image-name: ${{ github.repository }}
       image-tags: latest
