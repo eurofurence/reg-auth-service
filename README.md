@@ -47,15 +47,6 @@ go test -covermode=atomic -coverpkg=./internal/... ./...
 We aim for good coverage with BDD-style acceptance tests. These will be the
 best starting point to understanding what this service does.
 
-## Contract Tests
-
-This microservice uses [pact-go](https://github.com/pact-foundation/pact-go) for contract tests
-of its consumption of our OIDC identity provider.
-
-As described in the [pact-go installation instructions](https://github.com/pact-foundation/pact-go#installation),
-you will need to have the [pact ruby standalone binaries installed](https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh).
-They provide the local mock that receives the calls made during contract testing.
-
 ## Limitations
 
 The userinfo endpoint only works for configured applications whose cookie name matches the
