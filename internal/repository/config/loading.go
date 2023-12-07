@@ -8,6 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"sort"
 )
 
@@ -79,6 +80,30 @@ func setConfigurationDefaults(c *Application) {
 	}
 }
 
+const (
+	envOidcClientId     = "REG_SECRET_OIDC_CLIENT_ID"
+	envOidcClientSecret = "REG_SECRET_OIDC_CLIENT_SECRET"
+)
+
+func applyEnvVarOverrides(c *Application) {
+	if c != nil {
+		replacement := make(map[string]ApplicationConfig)
+
+		// in container deployments, we only support using the same application for all configs for now
+		for appKey, appValue := range c.ApplicationConfigs {
+			if oidcClientId := os.Getenv(envOidcClientId); oidcClientId != "" {
+				appValue.ClientId = oidcClientId
+			}
+			if oidcClientSecret := os.Getenv(envOidcClientSecret); oidcClientSecret != "" {
+				appValue.ClientSecret = oidcClientSecret
+			}
+			replacement[appKey] = appValue
+		}
+
+		c.ApplicationConfigs = replacement
+	}
+}
+
 func validateConfiguration(newConfigurationData *Application) error {
 	errs := url.Values{}
 
@@ -100,6 +125,8 @@ func ParseAndOverwriteConfig(yamlFile []byte) error {
 	}
 
 	setConfigurationDefaults(newConfigurationData)
+
+	applyEnvVarOverrides(newConfigurationData)
 
 	err = validateConfiguration(newConfigurationData)
 	if err != nil {
