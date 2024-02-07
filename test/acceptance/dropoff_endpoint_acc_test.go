@@ -23,6 +23,10 @@ import (
  *  * state - random-string identifier of this flow
  *  * code  - temporary credential to obtain the access token from the OIDC provider
  *
+ * Error parameters are:
+ *  * state - random-string identifier of this flow
+ *  * error - the error code
+ *  * error_description - human-readable description text
  */
 
 func TestDropoff_Success(t *testing.T) {
@@ -65,6 +69,22 @@ func TestDropoff_Success(t *testing.T) {
 	require.Equal(t, "example.com", id.Domain)
 	require.Equal(t, "access_mock_value", ac.Value)
 	require.Equal(t, "example.com", ac.Domain)
+}
+
+func TestDropoff_Failure_IDPError(t *testing.T) {
+	docs.Given("given the standard test configuration")
+	tstSetup(tstDefaultConfigFile)
+	defer tstShutdown()
+
+	docs.When("when they call the dropoff endpoint with an error")
+	test_url := "/v1/dropoff?state=" + tstAuthRequest.State + "&error=request_unauthorized&error_description=The+request+could+not+be+authorized"
+	response := tstPerformGetNoRedirect(test_url)
+
+	docs.Then("then the correct error is displayed")
+	require.Equal(t, http.StatusBadRequest, response.StatusCode, "unexpected http response status, must be HTTP 400")
+	responseBody := tstResponseBodyString(&response)
+	require.Contains(t, responseBody, "<b>error:</b> request_unauthorized: The request could not be authorized")
+	require.Contains(t, responseBody, `You can also <a href="https://example.com/app/">go back to try again</a>.`)
 }
 
 func TestDropoff_Failure_StateMissing(t *testing.T) {

@@ -49,7 +49,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 func logoutErrorHandler(ctx context.Context, w http.ResponseWriter, appName string, status int, logMsg string, publicMsg string) {
 	aulogging.Logger.Ctx(ctx).Warn().Printf("FAIL v1/logout(%s) -> %d: %s", appName, status, logMsg)
 	w.WriteHeader(status)
-	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
+	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg, ""))
 }
 
 func clearCookieAndRedirectToDropOffUrl(ctx context.Context, w http.ResponseWriter, applicationConfig config.ApplicationConfig) error {
