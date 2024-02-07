@@ -2,6 +2,7 @@ package dropoffctl
 
 import (
 	"context"
+	"fmt"
 	aulogging "github.com/StephanHCB/go-autumn-logging"
 	"github.com/eurofurence/reg-auth-service/internal/web/controller"
 	"net/http"
@@ -35,45 +36,53 @@ func dropOffHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	state := query.Get("state")
 	if state == "" {
-		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "state parameter is missing", "invalid parameters")
-		return
-	}
-	authCode := query.Get("code")
-	if authCode == "" {
-		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "authorization_code parameter is missing", "invalid parameters")
+		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "state parameter is missing", "invalid parameters", "")
 		return
 	}
 
 	authRequest, err := database.GetRepository().GetAuthRequestByState(ctx, state)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusNotFound, "couldn't load auth request: "+err.Error(), "auth request not found or timed out")
+		dropOffErrorHandler(ctx, w, state, http.StatusNotFound, "couldn't load auth request: "+err.Error(), "auth request not found or timed out", "")
 		return
 	}
 
 	applicationConfig, err := config.GetApplicationConfig(authRequest.Application)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, "couldn't load application config: "+err.Error(), "internal error")
+		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, "couldn't load application config: "+err.Error(), "internal error", "")
+		return
+	}
+
+	errorCode := query.Get("error")
+	errorDescription := query.Get("error_description")
+	if errorCode != "" {
+		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, fmt.Sprintf("error parameter set (%s|%s)", errorCode, errorDescription), fmt.Sprintf("%s: %s", errorCode, errorDescription), applicationConfig.DefaultDropoffUrl)
+		return
+	}
+
+	authCode := query.Get("code")
+	if authCode == "" {
+		dropOffErrorHandler(ctx, w, state, http.StatusBadRequest, "authorization_code parameter is missing", "invalid parameters", "")
 		return
 	}
 
 	idToken, accessToken, httpstatus, err := fetchToken(ctx, authCode, *authRequest)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, httpstatus, "couldn't fetch access codes: "+err.Error(), "failed to fetch token")
+		dropOffErrorHandler(ctx, w, state, httpstatus, "couldn't fetch access codes: "+err.Error(), "failed to fetch token", "")
 		return
 	}
 
 	err = setCookiesAndRedirectToDropOffUrl(ctx, w, idToken, accessToken, *authRequest, applicationConfig)
 	if err != nil {
-		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, err.Error(), "internal error")
+		dropOffErrorHandler(ctx, w, state, http.StatusInternalServerError, err.Error(), "internal error", "")
 		return
 	}
 	aulogging.Logger.Ctx(ctx).Info().Printf("OK dropoff[%s]", state)
 }
 
-func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, state string, status int, logMsg string, publicMsg string) {
+func dropOffErrorHandler(ctx context.Context, w http.ResponseWriter, state string, status int, logMsg string, publicMsg string, retryUrl string) {
 	aulogging.Logger.Ctx(ctx).Warn().Printf("FAIL dropoff[%s]: %s", state, logMsg)
 	w.WriteHeader(status)
-	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
+	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg, retryUrl))
 }
 
 func fetchToken(ctx context.Context, authCode string, ar entity.AuthRequest) (string, string, int, error) {

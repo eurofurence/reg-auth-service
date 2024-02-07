@@ -94,7 +94,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 func authErrorHandler(ctx context.Context, w http.ResponseWriter, regAppName string, dropOffUrl string, state string, status int, logMsg string, publicMsg string) {
 	aulogging.Logger.Ctx(ctx).Warn().Printf("FAIL auth(%s,%s)[%s]: %s", regAppName, dropOffUrl, state, logMsg)
 	w.WriteHeader(status)
-	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg))
+	_, _ = w.Write(controller.ErrorResponse(ctx, publicMsg, ""))
 }
 
 func validateDropOffURL(ctx context.Context, w http.ResponseWriter, exp string, dropOffUrl string) bool {

@@ -9,8 +9,12 @@ import (
 
 const errTimeFormat = "02.01.-15:04:05"
 
-func ErrorResponse(ctx context.Context, msg string) []byte {
+func ErrorResponse(ctx context.Context, msg string, retryUrl string) []byte {
 	currentTime := time.Now().Format(errTimeFormat)
+	retry := ""
+	if retryUrl != "" {
+		retry = fmt.Sprintf(`<p>You can also <a href="%s">go back to try again</a>.</p>`, retryUrl)
+	}
 	response := fmt.Sprintf(`<HTML>
 <HEAD>
   <TITLE>Reg Auth Service Error</TITLE>
@@ -22,7 +26,8 @@ func ErrorResponse(ctx context.Context, msg string) []byte {
   <p><b>error:</b> %s</p>
   <p><font color="red"><b>code:</b> %s-%s</font></p>
   <p>If you wish us to investigate an error, please provide us with the code.</p>
+  %s
 </BODY>
-</HTML>`, msg, ctxvalues.RequestId(ctx), currentTime)
+</HTML>`, msg, ctxvalues.RequestId(ctx), currentTime, retry)
 	return []byte(response)
 }
