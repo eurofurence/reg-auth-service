@@ -2,6 +2,8 @@ service:
   name: 'Registration Auth Service'
   # external url of my own "dropoff" endpoint. This must match the OAuth2 redirect_url setting on each client
   dropoff_endpoint_url: https://my.own.domain.example.com/v1/dropoff
+  # error url if no application config could be determined, shown to the user as a clickable link
+  error_url: https://my.dashboard.example.com
 server:
   port: 4712
 security:
