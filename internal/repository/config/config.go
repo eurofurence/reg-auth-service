@@ -55,6 +55,10 @@ func DropoffEndpointUrl() string {
 	return configuration().Service.DropoffEndpointUrl
 }
 
+func ErrorUrl() string {
+	return configuration().Service.ErrorUrl
+}
+
 func TokenRequestTimeout() time.Duration {
 	return configuration().IdentityProvider.TokenRequestTimeout
 }

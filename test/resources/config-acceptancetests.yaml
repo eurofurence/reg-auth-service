@@ -1,6 +1,7 @@
 service:
   name: 'Registration Auth Service Acceptance Test Configuration'
   dropoff_endpoint_url: http://localhost:8081/v1/dropoff
+  error_url: http://localhost:8081/
 server:
   port: 8081
 security:

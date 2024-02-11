@@ -18,6 +18,7 @@ type (
 	ServiceConfig struct {
 		Name               string `yaml:"name"`
 		DropoffEndpointUrl string `yaml:"dropoff_endpoint_url"` // externally visible url to my "dropoff" endpoint
+		ErrorUrl           string `yaml:"error_url"`            // externally visible default error url
 	}
 
 	// ServerConfig contains all values for http configuration
