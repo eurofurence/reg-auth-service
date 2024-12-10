@@ -17,7 +17,7 @@ security:
     # (otherwise the userinfo endpoint won't list it)
     relevant_groups:
       admin:
-        - '123456789'
+        - '1234567890'
       earlyReg: []
     # optional, allows local validation of tokens before they are even sent to the user info endpoint. Not good for production performance if omitted.
     token_public_keys_PEM:
