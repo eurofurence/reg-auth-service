@@ -1,5 +1,7 @@
 name: Create and publish Docker image
 
+# no idea why this does not start for tags - need a change in the file
+
 on:
   push:
     branches:
