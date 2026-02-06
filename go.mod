@@ -7,7 +7,7 @@ require (
 	github.com/StephanHCB/go-autumn-logging-zerolog v0.6.0
 	github.com/StephanHCB/go-autumn-restclient v0.9.1
 	github.com/StephanHCB/go-autumn-restclient-circuitbreaker v0.5.0
-	github.com/go-chi/chi/v5 v5.2.4
+	github.com/go-chi/chi/v5 v5.2.5
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
