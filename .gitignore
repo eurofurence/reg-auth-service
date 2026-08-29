@@ -4,7 +4,7 @@
 main
 reg-auth-service
 **/*.swp
-config.yaml
+config*.yaml
 test/**/*.log
 *.http
 tmp.go
