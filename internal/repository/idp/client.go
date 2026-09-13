@@ -97,7 +97,7 @@ func TokenRequestBody(appConfig config.ApplicationConfig, authorizationCode stri
 	parameters.Set("grant_type", "authorization_code")
 	parameters.Set("client_id", appConfig.ClientId)
 	parameters.Set("client_secret", appConfig.ClientSecret)
-	parameters.Set("redirect_uri", appConfig.DefaultDropoffUrl)
+	parameters.Set("redirect_uri", config.DropoffEndpointUrl())
 	parameters.Set("code", authorizationCode)
 	parameters.Set("code_verifier", pkceVerifier)
 	return parameters
