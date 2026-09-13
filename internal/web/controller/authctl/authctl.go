@@ -180,7 +180,7 @@ func redirectToOpenIDProvider(ctx context.Context, w http.ResponseWriter, applic
 	q.Set("state", state)
 	q.Set("code_challenge", codeChallenge)
 	q.Set("code_challenge_method", codeChallengeMethod)
-	q.Set("redirect_url", config.DropoffEndpointUrl())
+	q.Set("redirect_uri", config.DropoffEndpointUrl())
 	u.RawQuery = q.Encode()
 	w.Header().Set("Location", u.String())
 	w.WriteHeader(http.StatusFound)
