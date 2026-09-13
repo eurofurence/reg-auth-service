@@ -60,7 +60,7 @@ func TestAuth_Success_DropoffUrlSpecified(t *testing.T) {
 	require.NotEmpty(t, values.Get("code_challenge"))
 	require.Equal(t, "S256", values.Get("code_challenge_method"), "unexpected code_challenge_method, must be 'S256'")
 	// Note: this is *NOT* the dropoff_url that we might receive as an optional input parameter.
-	require.Equal(t, "http://localhost:8081/v1/dropoff", values.Get("redirect_url"), "unexpected redirect_url parameter, must be the URL of the /dropoff endpoint of this service")
+	require.Equal(t, "http://localhost:8081/v1/dropoff", values.Get("redirect_uri"), "unexpected redirect_uri parameter, must be the URL of the /dropoff endpoint of this service")
 	require.Equal(t, "code", values.Get("response_type"), "unexpected response_type parameter, must be 'code'")
 	require.Equal(t, "example", values.Get("scope"), "unexpected scope parameter, must match the application config's scope(s)")
 	state := values.Get("state")
@@ -97,7 +97,7 @@ func TestAuth_Success_DefaultDropoffUrl(t *testing.T) {
 	require.NotEmpty(t, values.Get("code_challenge"))
 	require.Equal(t, "S256", values.Get("code_challenge_method"), "unexpected code_challenge_method, must be 'S256'")
 	// Note: this is *NOT* the dropoff_url that we might receive as an optional input parameter.
-	require.Equal(t, "http://localhost:8081/v1/dropoff", values.Get("redirect_url"), "unexpected redirect_url parameter, must be the URL of the /dropoff endpoint of this service")
+	require.Equal(t, "http://localhost:8081/v1/dropoff", values.Get("redirect_uri"), "unexpected redirect_uri parameter, must be the URL of the /dropoff endpoint of this service")
 	require.Equal(t, "code", values.Get("response_type"), "unexpected response_type parameter, must be 'code'")
 	require.Equal(t, "example", values.Get("scope"), "unexpected scope parameter, must match the application config's scope(s)")
 	state := values.Get("state")
